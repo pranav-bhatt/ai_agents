@@ -1,0 +1,52 @@
+{
+    "/api/v2/projects/{project_id}/collaborators/{username}": {
+        "delete": {
+            "summary": "Delete a project collaborator",
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "The identifier of the project.",
+                    "required": true
+                },
+                {
+                    "name": "username",
+                    "description": "The username of the collaborator to add.",
+                    "required": true
+                }
+            ]
+        },
+        "put": {
+            "summary": "Add a project collaborator",
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "The identifier of the project.",
+                    "required": true
+                },
+                {
+                    "name": "username",
+                    "description": "The username of the collaborator to add.",
+                    "required": true
+                },
+                {
+                    "name": "body",
+                    "required": true,
+                    "schema": {
+                        "properties": {
+                            "project_id": {
+                                "description": "The identifier of the project."
+                            },
+                            "username": {
+                                "description": "The username of the collaborator to add."
+                            },
+                            "permission": {
+                                "description": "The project permission of the collaborator to set."
+                            }
+                        },
+                        "description": "Request for adding a project collaborator."
+                    }
+                }
+            ]
+        }
+    }
+}

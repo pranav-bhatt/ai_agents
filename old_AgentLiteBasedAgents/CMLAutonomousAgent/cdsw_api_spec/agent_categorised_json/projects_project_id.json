@@ -1,0 +1,1 @@
+{"/api/v2/projects/{project_id}":{"get":{"summary":"Return one project.","parameters":[{"name":"project_id","description":"Identifier for a project, in the form of a 19 digit string.\nExample: a1b2-c3d4-e5f6-g7h8","required":true}]},"delete":{"summary":"Delete a project.","parameters":[{"name":"project_id","description":"The project's identifier","required":true}]}}}

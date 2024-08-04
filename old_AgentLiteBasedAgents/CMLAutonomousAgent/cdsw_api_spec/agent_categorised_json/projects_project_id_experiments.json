@@ -1,0 +1,61 @@
+{
+    "/api/v2/projects/{project_id}/experiments": {
+        "get": {
+            "summary": "List all experiments in a given project.",
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "required": true
+                },
+                {
+                    "name": "search_filter",
+                    "description": "Search filter is an optional HTTP parameter to filter results by.",
+                    "required": false
+                },
+                {
+                    "name": "page_size",
+                    "description": "Page size is an optional argument for number of entries to return in one page.\nIf not specified, the server will determine a page size.\nIf specified, must be respecified for further requests when using the\nprovided next page token in the response.",
+                    "required": false
+                },
+                {
+                    "name": "page_token",
+                    "description": "Page token is an optional argument for specifying which page of results to get.\nIf not specified, the first page will be returned, including a token for the next page.\nWill be empty if there is no next page.",
+                    "required": false
+                },
+                {
+                    "name": "sort",
+                    "description": "Sort is an optional HTTP parameter to sort results by.",
+                    "required": false
+                }
+            ]
+        },
+        "post": {
+            "summary": "Create an experiment.",
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "required": true
+                },
+                {
+                    "name": "body",
+                    "required": true,
+                    "schema": {
+                        "properties": {
+                            "project_id": {},
+                            "name": {
+                                "title": "Experiment name"
+                            },
+                            "artifact_location": {
+                                "description": "Location where all artifacts for the experiment are stored.\nURI of the directory where artifacts should be uploaded.\nThis can be a local path (starting with \"/\"), or a distributed file system (DFS)\npath, like ``s3://bucket/directory`` or ``dbfs:/my/directory``.\nIf not set, the local ``./mlruns`` directory is  chosen."
+                            },
+                            "engine_id": {
+                                "title": "Engine ID (from session)"
+                            }
+                        },
+                        "description": "CreateExperimentRequest takes the project id and Experiment name."
+                    }
+                }
+            ]
+        }
+    }
+}

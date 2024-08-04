@@ -1,0 +1,29 @@
+name: Multi-Agent API Orchestrator using CrewAI
+description: This project demonstrates the powerful capabilities of multi-agent systems using the CrewAI framework. It provides a practical example of how users can input their API specifications and interact with their services through natural language. This implementation showcases the potential of multi-agent systems to enhance API management and streamline workflows, highlighting their effectiveness in automating and optimizing complex tasks.
+author: Pranav Bhatt(adpranavb2000@gmail.com), Kousani Sarkar ()
+specification_version: 1.0
+prototype_version: 1.0
+date: "2024-07-26"
+runtimes:
+  - editor: JupyterLab
+    kernel: Python 3.11
+    edition: Standard
+
+## Below are some sample tasks based on some of the most popular aspects of AMP creation.
+tasks:
+  ## SESSION related AMP snippet
+  - type: run_session
+    name: Install Dependencies
+    script: install-dependencies.py
+    short_summary: Install Requirements and Dependencies
+    kernel: python3
+    cpu: 2
+    memory: 8
+
+  ## APPLICATION related AMP snippet
+  - type: start_application
+    name: Multi-Agent API Orchestrator using CrewAI
+    short_summary: This project highlights the impressive capabilities of multi-agent systems with the CrewAI framework. It enables users to provide API specifications and interact with their services using natural language, illustrating the potential of these systems to automate and streamline complex workflows.
+    long_summary: This project demonstrates the powerful capabilities of multi-agent systems using the CrewAI framework. It provides a practical example of how users can input their API specifications and interact with their services through natural language. This implementation showcases the potential of multi-agent systems to enhance API management and streamline workflows, highlighting their effectiveness in automating and optimizing complex tasks.
+    subdomain: multi-agents-with-crewai
+    script: panel_start.py

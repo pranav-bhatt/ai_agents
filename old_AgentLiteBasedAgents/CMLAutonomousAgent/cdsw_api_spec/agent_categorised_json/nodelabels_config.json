@@ -1,0 +1,1 @@
+{"/api/v2/nodelabels/config":{"patch":{"summary":"Update admin_config_max_per_workload in Node Labels","parameters":[{"name":"body","required":true,"schema":{"properties":{"id_max_gpu_workload":{"additionalProperties":{},"title":"map of id and admin_config_max_per_workload in an AcceleratorNodeLabel"}}}}]}}}

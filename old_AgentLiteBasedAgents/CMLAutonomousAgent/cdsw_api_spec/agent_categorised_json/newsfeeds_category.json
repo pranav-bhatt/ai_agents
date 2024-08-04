@@ -1,0 +1,1 @@
+{"/api/v2/newsfeeds/{category}":{"get":{"summary":"List the newsfeeds, optionally filtered, sorted, and paginated.","parameters":[{"name":"category","required":true},{"name":"page_size","required":false},{"name":"page_token","required":false}]}}}

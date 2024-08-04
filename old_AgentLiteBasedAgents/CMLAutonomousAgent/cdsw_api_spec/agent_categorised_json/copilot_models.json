@@ -1,0 +1,98 @@
+{
+    "/api/v2/copilot/models": {
+        "get": {
+            "summary": "List Copilot models, optionally filtered, sorted, and paginated.",
+            "parameters": [
+                {
+                    "name": "search_filter",
+                    "description": "Search filter is an optional HTTP parameter to filter results by.\nSupported search filter keys are:\n    [provider name endpoint enabled default].\nFor example:\n  search_filter={\"provider\":\"Amazon Bedrock\",\"enabled\":\"t\"}.",
+                    "required": false
+                },
+                {
+                    "name": "sort",
+                    "description": "Sort is an optional HTTP parameter to sort results by.\nSupported sort keys are: [provider name endpoint enabled default].\nwhere \"+\" means sort by ascending order, and \"-\" means sort by descending order.\nFor example:\n  sort=provider.",
+                    "required": false
+                },
+                {
+                    "name": "page_size",
+                    "description": "Page size of the response Copilot model list.",
+                    "required": false
+                },
+                {
+                    "name": "page_token",
+                    "description": "Page token for specifying which page to return.",
+                    "required": false
+                }
+            ]
+        },
+        "post": {
+            "summary": "Create a Copilot model.",
+            "parameters": [
+                {
+                    "name": "body",
+                    "required": true,
+                    "schema": {
+                        "properties": {
+                            "provider": {
+                                "title": "Name of the model provider. E.g. 'Amazon Bedrock'"
+                            },
+                            "name": {
+                                "description": "Name of the model. E.g. 'Llama2 70b'."
+                            },
+                            "endpoint": {
+                                "description": "For CMLServing models, the model endpoint."
+                            },
+                            "enabled": {
+                                "description": "Whether or not to enable this model for use in Copilot."
+                            },
+                            "default": {
+                                "description": "Whether to make this the default Copilot model. If set to true,\nthe existing default Copilot model will no longer be default, and\nthis one will become the default."
+                            }
+                        },
+                        "description": "Parameters for creating a Copilot model."
+                    }
+                }
+            ]
+        }
+    },
+    "/api/v2/copilot/models/{copilot_model.id}": {
+        "patch": {
+            "summary": "Update a Copilot model.",
+            "parameters": [
+                {
+                    "name": "copilot_model.id",
+                    "description": "ID of the model. Must be unique.",
+                    "required": true
+                },
+                {
+                    "name": "body",
+                    "description": "The model containing some number of fields to update.",
+                    "required": true,
+                    "schema": {
+                        "properties": {
+                            "id": {
+                                "description": "ID of the model. Must be unique."
+                            },
+                            "provider": {
+                                "description": "The Model Provider. E.g. 'Amazon Bedrock' or 'CML Serving'."
+                            },
+                            "name": {
+                                "description": "The name of the model. E.g. 'Llama2 70b'.  The combination of the\nprovider and name fields must be unique."
+                            },
+                            "endpoint": {
+                                "description": "For CMLServing models, the model endpoint string to connect to."
+                            },
+                            "enabled": {
+                                "description": "Whether a model is enabled for Copilot use."
+                            },
+                            "default": {
+                                "description": "Whether this model is the default model for Copilot use. Only one model\ncan be the default Copilot model. Only enabled models can be the default."
+                            }
+                        },
+                        "description": "Models for use with Cloudera Copilot."
+                    }
+                }
+            ]
+        }
+    }
+}

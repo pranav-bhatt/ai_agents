@@ -1,0 +1,154 @@
+{
+    "/api/v2/projects/{project_id}/jobs": {
+        "get": {
+            "summary": "Returns all jobs, optionally filtered, sorted, and paginated.",
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "The project's identifier",
+                    "required": true
+                },
+                {
+                    "name": "search_filter",
+                    "description": "Search filter is an optional HTTP parameter to filter results by.\nSupported search filter keys are: [creator.email creator.name creator.username description kernel name paused script type].\nFor example:\n  search_filter={\"name\":\"foo\",\"creator.name\":\"bar\"},.",
+                    "required": false
+                },
+                {
+                    "name": "sort",
+                    "description": "Sort is an optional HTTP parameter to sort results by.\nSupported sort keys are: [created_at creator.email creator.name creator.username description kernel name paused script type updated_at],\nwhere \"+\" means sort by ascending order, and \"-\" means sort by descending order.\nFor example:\n  sort=+name,-created_at.",
+                    "required": false
+                },
+                {
+                    "name": "page_size",
+                    "description": "Page size is an optional argument for number of entries to return in one page.\nIf not specified, the server will determine a page size.\nIf specified, must be respecified for further requests when using the\nprovided next page token in the response.",
+                    "required": false
+                },
+                {
+                    "name": "page_token",
+                    "description": "Page token is an optional argument for specifying which page of results to get.\nIf not specified, the first page will be returned, including a token for the next page.\nWill be empty if there is no next page.",
+                    "required": false
+                }
+            ]
+        },
+        "post": {
+            "summary": "Create a new job.",
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "ID of the project containing the job.",
+                    "required": true
+                },
+                {
+                    "name": "body",
+                    "required": true,
+                    "schema": {
+                        "properties": {
+                            "project_id": {
+                                "description": "ID of the project containing the job."
+                            },
+                            "name": {
+                                "description": "Name of the new job."
+                            },
+                            "script": {
+                                "description": "The script to run for the new job."
+                            },
+                            "cpu": {
+                                "description": "CPU cores to allocate to job runs for this job (default 1)."
+                            },
+                            "memory": {
+                                "description": "Memory in GB to allocate to job runs for this job (default 1)."
+                            },
+                            "nvidia_gpu": {
+                                "description": "Number of Nvidia GPUs to allocate to this job (default 0)."
+                            },
+                            "parent_job_id": {
+                                "title": "Optional dependent job if this new job is a dependency.\nSetting this to a parent job will make this job run when the parent job\ncompletes. Cannot be used alongside \"schedule\".\nthis is deprecated and alias of parent_id"
+                            },
+                            "environment": {
+                                "additionalProperties": {},
+                                "description": "Default environment variables to include in job runs for this job."
+                            },
+                            "arguments": {
+                                "title": "Default arguments to pass to job runs for this job"
+                            },
+                            "timeout": {
+                                "description": "Timeout in seconds of job runs for this job."
+                            },
+                            "schedule": {
+                                "description": "Schedule to run a job automatically. Cannot be used in a dependency job.\nFollows the cron format. For example, to execute the job every Monday\nat 1 PM UTC, the schedule would be \"0 13 * * 1\" without quotes."
+                            },
+                            "kernel": {
+                                "description": "Kernel to run the job runs on. Possible values are\npython3, python2, r, or scala.\nShould not be set if the project uses ML Runtimes."
+                            },
+                            "recipients": {
+                                "items": {
+                                    "properties": {
+                                        "email": {
+                                            "title": "Recipient's email"
+                                        },
+                                        "notify_on_success": {
+                                            "description": "Whether to notify on job success."
+                                        },
+                                        "notify_on_failure": {
+                                            "description": "Whether to notify on job failure."
+                                        },
+                                        "notify_on_timeout": {
+                                            "description": "Whether to notify on job timeout."
+                                        },
+                                        "notify_on_stop": {
+                                            "description": "Whether to notify when the job is stopped."
+                                        }
+                                    },
+                                    "title": "Recipients of a job"
+                                },
+                                "description": "An optional list of recipients to receive notifications for job events\nsuch as successful runs, failures, and manual stops."
+                            },
+                            "attachments": {
+                                "items": {},
+                                "description": "Files to attach (with path relative to /home/cdsw/) in notification emails.\nFor example, to attach a file located at /home/cdsw/report/result.csv,\ninclude \"report/result.csv\" in the array for this field."
+                            },
+                            "runtime_identifier": {
+                                "description": "The runtime image identifier to use if this job is part of a ML Runtime project.\nMust be set if using ML Runtimes."
+                            },
+                            "runtime_addon_identifiers": {
+                                "items": {},
+                                "description": "A list of runtime addon identifiers associated with this job."
+                            },
+                            "kill_on_timeout": {
+                                "description": "Whether to kill the job on timeout. This field does nothing if the timeout\nis not set."
+                            },
+                            "timezone": {
+                                "description": "Timezone of the job. Relevant only when schedule\n(recurring jobs) is provided (default 'America/Los_Angeles')."
+                            },
+                            "paused": {
+                                "description": "Whether to create the job in paused state. Relevant only when schedule\n(recurring jobs) is provided. Recurring jobs are put in un-paused state by default."
+                            },
+                            "parent_id": {
+                                "description": "Optional dependent job if this new job is a dependency.\nSetting this to a parent job will make this job run when the parent job\ncompletes. Cannot be used alongside \"schedule\"."
+                            },
+                            "success_recipients": {
+                                "title": "recipients that are notified when job succeeds"
+                            },
+                            "failure_recipients": {
+                                "title": "recipients that are notified on when job fails"
+                            },
+                            "timeout_recipients": {
+                                "title": "recipients that are notified when job times out"
+                            },
+                            "stopped_recipients": {
+                                "title": "recipients that are notified when job stops"
+                            },
+                            "run_as": {
+                                "title": "userID of the service account user\ndefaults to userID of the creator"
+                            },
+                            "accelerator_label_id": {
+                                "title": "Label to use for node selecting gpu/accelerator"
+                            }
+                        },
+                        "description": "Parameters to create a new job."
+                    }
+                }
+            ]
+        }
+    }
+}

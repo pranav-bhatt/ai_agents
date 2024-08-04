@@ -1,0 +1,1 @@
+{"/api/v2/users/{username}/v2_keys/{key_id}":{"delete":{"summary":"Delete an API V2 key","parameters":[{"name":"username","description":"username of the user whose V2 key you want to delete","required":true},{"name":"key_id","description":"ID of the V2 key","required":true}]}}}

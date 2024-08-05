@@ -86,8 +86,9 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
             ).group(1).replace("_metadata", "")
             print(configuration.selected_swagger_file)
         if "iteration limit" in outputs["output"] or "time limit" in outputs["output"]:
+            message = outputs["output"] + "😵‍💫 Retrying..."
             self.chat_interface.send(
-                pn.pane.Alert(outputs["output"], alert_type='warning'), 
+                pn.pane.Alert(message, alert_type='warning'), 
                 user="System", respond=False
             )
         else:

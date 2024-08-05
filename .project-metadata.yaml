@@ -22,8 +22,7 @@ tasks:
 
   ## APPLICATION related AMP snippet
   - type: start_application
-    name: Multi-Agent API Orchestrator using CrewAI
-    short_summary: This project highlights the impressive capabilities of multi-agent systems with the CrewAI framework. It enables users to interact with their services using natural language, illustrating the potential of these systems to streamline complex workflows.
-    long_summary: This project highlights the impressive capabilities of multi-agent systems with the CrewAI framework. It enables users to interact with their services using natural language, illustrating the potential of these systems to streamline complex workflows.
+    name: Starting up the application
+    short_summary: Starting up the application
     subdomain: multi-agents-with-crewai
     script: panel_start.py

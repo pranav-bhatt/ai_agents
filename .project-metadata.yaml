@@ -22,8 +22,8 @@ tasks:
 
   ## APPLICATION related AMP snippet
   - type: start_application
-    name: Starting up the application
-    short_summary: Starting up the application
+    name: Multi-Agent API Orchestrator using CrewAI
+    short_summary: Interact with your APIs using natural language. Powered by a multi-agent system using CrewAI.
     subdomain: multi-agents-with-crewai
     script: panel_start.py
     cpu: 4

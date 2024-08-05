@@ -193,10 +193,9 @@ class Tasks:
                 the error yourself. If you determine that the error needs user intervention / clarification from the user,
                 go ahead and ask the user the necessary query. Once you have the details, go ahead and try to make the API
                 call again.
-                7. Once a satisfactory output has been obtained, return the outcome of the call.
-                8. Using the 'get_human_input' tool, ask the user if they wanted any other queries to be answered. If the user 
-                says yes, then delegate the task to the task matcher agent to handle (make sure to specify the user prompt 
-                verbatim). If they say no, then finish execution.
+                7. Once a satisfactory output has been obtained, return the outcome of the api call.
+                8. Once the outcome is returned, using the 'get_human_input' tool, inform the user with the below prompt:
+                'Please Reload the Crew if you have any other queries to be answered', and finish the execution.
                 """
             ),
             expected_output=dedent(

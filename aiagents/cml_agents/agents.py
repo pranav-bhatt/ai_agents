@@ -32,9 +32,8 @@ class Agents:
                 and ask for clarification about the same. Once the user has provided all the required information, make the
                 call again.
 
-                After successfully making the API call, give the user the results through the human input tool, and ask if
-                they want to perform any further actions. If they say yes, then pass the action verbatim to the task matcher 
-                agent stating that the user wants to perform a new task, and let it do the rest.
+                After successfully making the API call, give the user the results through the human input tool. Post this, ask 
+                the user using the human input tool to Reload the Crew if they have any further queries, and end the execution.
                 """
             ),
             backstory=dedent(

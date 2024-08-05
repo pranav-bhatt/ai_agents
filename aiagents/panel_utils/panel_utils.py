@@ -86,8 +86,9 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
             ).group(1).replace("_metadata", "")
             print(configuration.selected_swagger_file)
         if "iteration limit" in outputs["output"] or "time limit" in outputs["output"]:
+            message = outputs["output"] + "😵‍💫 Retrying..."
             self.chat_interface.send(
-                pn.pane.Alert(outputs["output"], alert_type='warning'), 
+                pn.pane.Alert(message, alert_type='warning'), 
                 user="System", respond=False
             )
         else:
@@ -120,13 +121,13 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
         )
         markdown_input.styles = custom_style
         color = {
-            "Human Input Agent": "#fbd7d1",
-            "API Selector Agent": "#fdf4e2",
-            "Decision Validator Agent": "#f2fce8",
-            "API Caller Agent": "#e8fdf6",
-            "Task Matcher": "#e8fdf6",
-            "Swagger API Description Summarizer": "#fcf4bd",
-            "swagger_splitter": "#f3e1fe",
+            "Human Input Agent": "#aff7fa",
+            "API Selector Agent": "#fdeeb8",
+            "Decision Validator Agent": "#f4c4a9",
+            "API Caller Agent": "#ffa7cf",
+            "Task Matcher": "#c0e1fa",
+            "Swagger API Description Summarizer": "#e0f087",
+            "swagger_splitter": "#eba7f7",
         }
         accordion = pn.Accordion((step_name, markdown_input))
         accordion.active_header_background = color[user]

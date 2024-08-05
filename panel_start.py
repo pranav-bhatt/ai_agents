@@ -28,12 +28,13 @@ env_vars = {
     "AZURE_OPENAI_ENDPOINT": "https://cml-gpt-1.openai.azure.com",
 }
 
-# Create the .env file and write the environment variables
-with open(".env", "w") as env_file:
-    for key, value in env_vars.items():
-        set_key(find_dotenv(), key, value)
+# Create the .env file if it doesn't exist and write the environment variables
+if not path.exists(".env"):
+    with open(".env", "w") as env_file:
+        for key, value in env_vars.items():
+            set_key(find_dotenv(), key, value)
 
-print(".env file created successfully.")
+    print(".env file created successfully.")
 
 
 def callback(contents: str, user: str, instance: pn.chat.ChatInterface):
@@ -251,7 +252,7 @@ configuration.customCallbacks = [
 def main():
     # Instantiate the template with widgets displayed in the sidebar
     template = pn.template.FastListTemplate(
-        title="Multi Agents with Crew AI",
+        title="Multi-Agent API Orchestrator using CrewAI",
         sidebar=configuration.sidebar,
         accent="#2F4F4F",
         sidebar_width=400,

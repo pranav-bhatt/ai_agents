@@ -26,3 +26,5 @@ tasks:
     short_summary: Starting up the application
     subdomain: multi-agents-with-crewai
     script: panel_start.py
+    cpu: 4
+    memory: 16

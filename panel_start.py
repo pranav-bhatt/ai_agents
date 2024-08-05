@@ -51,7 +51,7 @@ configuration.chat_interface = pn.chat.ChatInterface(
 
 
 def session_created(session_context: BokehSessionContext):
-    start_crew_button.disabled = False
+    start_crew_button.disabled = True
     configuration.chat_interface.clear()
     configuration.chat_interface.send(
         "Starting the Crew!", user="System", respond=False

@@ -30,7 +30,7 @@ class SwaggerSplitterAgents:
                 not generate the metadata summaries, and the check whether or not the metadata summary files have to be generated
                 needs to be performed by the Swagger API Description Summarizer agent.
                 
-                Make no assumptions whatsoever.
+                Make no assumptions whatsoever. You are not to interact with the user for any purpose.
                 """
             ),
             backstory="""You are an expert in processing Swagger files. Your primary responsibility is to """
@@ -54,11 +54,11 @@ class SwaggerSplitterAgents:
                 You will use the summary_generator tool to generate the summaries. It requires no inputs. 
                 Ensure that the prompt you construct is created keeping in mind the above instructions.
 
-                If there are no summaries available, that means that the swagger_splitter tool has not been run.
-                In that case, delegate the task to the swagger splitter agent, and once its done, then run the 
-                summary generation via the summary_generator tool.
+                If you find that any directory or file you need is missing, that means that the swagger_splitter 
+                tool has not been run. In that case, delegate the task to the swagger splitter agent, 
+                and once its done, then run the summary generation via the summary_generator tool.
                 
-                Make no assumptions whatsoever.
+                Make no assumptions whatsoever. You are not to interact with the user for any purpose.
                 """
             ),
             backstory="You are an expert in analysing swagger JSON files and summarising the API capabilities.",

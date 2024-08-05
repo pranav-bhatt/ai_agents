@@ -73,6 +73,7 @@ stylesheet = """
 }
 """
 
+
 def check_input_value(*events):
     if (
         (key_input.value or get_key(find_dotenv(), "AZURE_OPENAI_API_KEY"))

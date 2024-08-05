@@ -1,6 +1,6 @@
 name: Multi-Agent API Orchestrator using CrewAI
-description: This project demonstrates the powerful capabilities of multi-agent systems using the CrewAI framework. It provides a practical example of how users can input their API specifications and interact with their services through natural language. This implementation showcases the potential of multi-agent systems to enhance API management and streamline workflows, highlighting their effectiveness in automating and optimizing complex tasks.
-author: Pranav Bhatt(adpranavb2000@gmail.com), Kousani Sarkar ()
+description: This project highlights the impressive capabilities of multi-agent systems with the CrewAI framework. It enables users to interact with their services using natural language, illustrating the potential of these systems to streamline complex workflows.
+author: Pranav Bhatt(adpranavb2000@gmail.com), Kousani Sarkar (ksarkar@cloudera.com)
 specification_version: 1.0
 prototype_version: 1.0
 date: "2024-07-26"
@@ -23,7 +23,7 @@ tasks:
   ## APPLICATION related AMP snippet
   - type: start_application
     name: Multi-Agent API Orchestrator using CrewAI
-    short_summary: This project highlights the impressive capabilities of multi-agent systems with the CrewAI framework. It enables users to provide API specifications and interact with their services using natural language, illustrating the potential of these systems to automate and streamline complex workflows.
-    long_summary: This project demonstrates the powerful capabilities of multi-agent systems using the CrewAI framework. It provides a practical example of how users can input their API specifications and interact with their services through natural language. This implementation showcases the potential of multi-agent systems to enhance API management and streamline workflows, highlighting their effectiveness in automating and optimizing complex tasks.
+    short_summary: This project highlights the impressive capabilities of multi-agent systems with the CrewAI framework. It enables users to interact with their services using natural language, illustrating the potential of these systems to streamline complex workflows.
+    long_summary: This project highlights the impressive capabilities of multi-agent systems with the CrewAI framework. It enables users to interact with their services using natural language, illustrating the potential of these systems to streamline complex workflows.
     subdomain: multi-agents-with-crewai
     script: panel_start.py

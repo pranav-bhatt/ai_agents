@@ -126,7 +126,7 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
             "API Caller Agent": "#e8fdf6",
             "Task Matcher": "#e8fdf6",
             "Swagger API Description Summarizer": "#fcf4bd",
-            "swagger_splitter": "#ecb1f0",
+            "swagger_splitter": "#f3e1fe",
         }
         accordion = pn.Accordion((step_name, markdown_input))
         accordion.active_header_background = color[user]
@@ -137,6 +137,7 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
             accordion,
             user=user,
             respond=False,
+            avatar=f"{configuration.avatar_images[user]}",
         )
         time.sleep(1)
         configuration.spinner.value = True

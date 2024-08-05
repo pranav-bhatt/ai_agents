@@ -71,7 +71,10 @@ def get_human_input(agent_name: str, agent_question: str) -> str:
     - agent_question: The question that the agent will ask the user.
     """
     configuration.chat_interface.send(
-        value=agent_question, user=agent_name, respond=False
+        value=agent_question,
+        user=agent_name,
+        respond=False,
+        avatar=f"{configuration.avatar_images[agent_name]}",
     )
     configuration.spinner.value = False
     configuration.spinner.visible = False

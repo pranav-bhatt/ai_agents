@@ -1,4 +1,4 @@
-from os import environ, path
+from os import environ, path, makedirs
 from ast import literal_eval
 from shutil import rmtree
 from dotenv import load_dotenv, find_dotenv, set_key, get_key
@@ -66,6 +66,13 @@ def session_created(session_context: BokehSessionContext):
 
 
 # sidebar widgets
+stylesheet = """
+:host(.alert) {
+  padding: 0 10px;
+  max-height: 50px;
+}
+"""
+
 def check_input_value(*events):
     if (
         (key_input.value or get_key(find_dotenv(), "AZURE_OPENAI_API_KEY"))
@@ -99,6 +106,8 @@ alert = pn.pane.Alert(
     "!!The Swagger file uploaded is invalid. Please upload a valid file",
     alert_type="danger",
     width=380,
+    stylesheets=[stylesheet],
+    css_classes=["alert"],
 )
 alert.visible = False
 key_input.param.watch(check_input_value, "value")
@@ -133,6 +142,8 @@ def handle_inputs(event):
         except FileNotFoundError:
             pass
 
+        if not path.exists(configuration.swagger_files_directory):
+            makedirs(configuration.swagger_files_directory)
         file_path = path.join(
             configuration.swagger_files_directory, file_input.filename
         )
@@ -227,7 +238,7 @@ configuration.sidebar = pn.Column(
         ),
         align=("start", "center"),  # vertical, horizontal
     ),
-    pn.Spacer(height=50),
+    pn.Spacer(height=10),
     pn.Row(start_crew_button, configuration.reload_button),
 )
 
@@ -239,7 +250,7 @@ configuration.customCallbacks = [
 def main():
     # Instantiate the template with widgets displayed in the sidebar
     template = pn.template.FastListTemplate(
-        title="CMLAgent",
+        title="Multi Agents with Crew AI",
         sidebar=configuration.sidebar,
         accent="#2F4F4F",
         sidebar_width=400,

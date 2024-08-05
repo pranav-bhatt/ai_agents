@@ -30,7 +30,6 @@ def StartCrew(configuration: Initialize):
 
     tasks = Tasks(configuration=configuration, agents=agent_dict)
 
-    global splitterCrew
     splitterCrew = Crew(
         agents=[
             agent_dict["swagger_splitter_agent"],

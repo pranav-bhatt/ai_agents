@@ -51,6 +51,15 @@ class Initialize:
         self.customCallbacks = []
         self.diagram_path = f"{self.project_root}/assets/images"
         self.active_diagram = pn.widgets.TextInput(value=f"{self.diagram_path}/{self.diagrams['full']}")
+        self.avatar_images = {
+            "Human Input Agent": f"{self.diagram_path}/human_input_agent.jpg",
+            "API Selector Agent": f"{self.diagram_path}/api_selector_agent.jpg",
+            "Decision Validator Agent": f"{self.diagram_path}/decision_validator_agent.jpg",
+            "API Caller Agent": f"{self.diagram_path}/api_caller_agent.jpg",
+            "Task Matcher": f"{self.diagram_path}/task_matcher_agent.jpg",
+            "Swagger API Description Summarizer": f"{self.diagram_path}/metadata_summarizer_agent.jpg",
+            "swagger_splitter": f"{self.diagram_path}/swagger_splitter_agent.jpg",
+        }
         self.crew_thread: threads.thread_with_trace = None
 
     def update_configuration(self):

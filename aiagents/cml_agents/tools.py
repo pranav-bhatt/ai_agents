@@ -5,11 +5,12 @@ from textwrap import dedent
 from json import dump, loads
 from requests import get, post, patch, delete
 from time import sleep
+import panel as pn
 
 from crewai_tools import BaseTool, FileReadTool, DirectoryReadTool, tool
 
 from langchain_community.agent_toolkits import FileManagementToolkit
-from langchain_openai import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from langchain.agents import Tool
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
@@ -71,7 +72,10 @@ def get_human_input(agent_name: str, agent_question: str) -> str:
     - agent_question: The question that the agent will ask the user.
     """
     configuration.chat_interface.send(
-        value=agent_question,
+        value=pn.pane.Markdown(
+            object=agent_question,
+            styles=configuration.chat_styles
+        ),
         user=agent_name,
         respond=False,
         avatar=f"{configuration.avatar_images[agent_name]}",
@@ -155,7 +159,9 @@ class SummaryGenerator(BaseTool):
         {json_content}
         ```
         """
-        llm = AzureChatOpenAI(azure_deployment="cml")
+        llm = AzureChatOpenAI(azure_deployment=environ.get(
+            "AZURE_OPENAI_DEPLOYMENT", "cml"
+        )) if configuration.openai_provider == "AZURE_OPENAI" else ChatOpenAI()
         prompt_template = PromptTemplate(
             template=human_template, input_variables=["json_content"]
         )
@@ -202,7 +208,9 @@ class APICaller(BaseTool):
             to the API, with strictly no nesting of parameters. This field is of the form k:v
             where the key is the name of the parameter, and v is the value of the parameter.
             Using these parameters, the api_caller tool will construct the body and send the request.
-            For example, "parameters": {"key1": "value1", "key2": "value2"...}. Make sure not to 
+            For example, "parameters": {"key1": "value1", "key2": "value2"...},
+            "**kwargs": Extra arguments that might be necessary to make the API call, such as 
+            "API_ENDPOINT" and "API_BEARER_TOKEN"
         ```
         """
     )
@@ -233,7 +241,10 @@ class APICaller(BaseTool):
 
         call_details = f"""Making request to: {url} with parameters: {parameters} and headers: {headers}"""
         configuration.chat_interface.send(
-            value=call_details, user="API Caller Tool", respond=False, avatar="🛠️"
+            value=pn.pane.Markdown(
+                object=call_details,
+                styles=configuration.chat_styles
+            ), user="API Caller Tool", respond=False, avatar="🛠️"
         )
 
         if method.upper() == "GET":

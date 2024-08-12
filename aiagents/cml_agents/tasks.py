@@ -192,7 +192,9 @@ class Tasks:
                 6. Make the API call by triggering the API call tool. If the API call returns an error, try to deal with 
                 the error yourself. If you determine that the error needs user intervention / clarification from the user,
                 go ahead and ask the user the necessary query. Once you have the details, go ahead and try to make the API
-                call again.
+                call again. The 'api_caller' tool supports **kwargs which you can use to send any extra parameters such as
+                "API_BEARER_TOKEN" and "API_ENDPOINT" in case the API call returned an error due to incorrect API endpoint 
+                or Bearer token being used, and the user has provided you with rectified values when you reported the error.
                 7. Once a satisfactory output has been obtained, return the outcome of the api call.
                 8. Once the outcome is returned, using the 'get_human_input' tool, inform the user with the below prompt:
                 'Please Reload the Crew if you have any other queries to be answered', and finish the execution.

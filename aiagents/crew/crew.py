@@ -1,6 +1,7 @@
 from os import environ
 
 from crewai import Crew
+import panel as pn
 
 from aiagents.cml_agents.manager_agents import ManagerAgents
 from aiagents.cml_agents.swagger_splitter import SwaggerSplitterAgents
@@ -30,6 +31,25 @@ def StartCrew(configuration: Initialize):
 
     tasks = Tasks(configuration=configuration, agents=agent_dict)
 
+    embedding = {
+        "provider": "azure_openai",
+        "config": {
+            "model": environ.get(
+                "OPENAI_EMBEDDING_MODEL", "text-embedding-ada-002"
+            ),
+            "deployment_name": environ.get(
+                "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "ada-embedding"
+            ),
+        },
+    } if configuration.openai_provider=="AZURE_OPENAI" else {
+        "provider": "openai",
+        "config": {
+            "model": environ.get(
+                "OPENAI_EMBEDDING_MODEL", "text-embedding-ada-002"
+            )
+        },
+    }
+
     splitterCrew = Crew(
         agents=[
             agent_dict["swagger_splitter_agent"],
@@ -48,17 +68,22 @@ def StartCrew(configuration: Initialize):
         ],
         verbose=1,
         memory=True,
-        embedder={
-            "provider": "azure_openai",
-            "config": {
-                "model": environ.get(
-                    "AZURE_OPENAI_EMBEDDING_MODEL", "text-embedding-ada-002"
-                ),
-                "deployment_name": environ.get(
-                    "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "ada-embedding"
-                ),
-            },
-        },
+        embedder=embedding,
     )
 
-    splitterCrew.kickoff()
+    try:
+        splitterCrew.kickoff()
+    
+    except Exception as err:
+        configuration.chat_interface.send(
+            pn.pane.Markdown(
+                object=f"Starting Crew Failed with {err}\n Please Reload the Crew.",
+                styles=configuration.chat_styles
+            ),
+            user="System",
+            respond=False
+        )
+
+        configuration.spinner.visible=False
+        configuration.spinner.value=False
+        configuration.reload_button.disabled=False

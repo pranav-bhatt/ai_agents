@@ -352,14 +352,14 @@ def main():
     # Instantiate the template with widgets displayed in the sidebar
     template = pn.template.FastListTemplate(
         header="""
-            <html><p style='
+            <html><a href="/" style='
                 font-size: 1.3rem;
                 color: #f1e1e1;
-            '>
-                Multi-Agent API Orchestrator using CrewAI
-            </p></html>
+                text-decoration: none;
+                margin-left: -2rem;
+            '>Multi-Agent API Orchestrator using CrewAI</a></html>
         """,
-        title="",
+        title=" ",
         sidebar=pn.Column(configuration.sidebar),
         accent="#2F4F4F",
         sidebar_width=400,

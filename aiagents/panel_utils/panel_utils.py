@@ -6,6 +6,7 @@ from re import search
 import panel as pn
 
 from aiagents.config import configuration
+from aiagents.panel_utils.panel_stylesheets import card_stylesheet
 
 avatars = {}
 
@@ -80,7 +81,7 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
     def on_chain_end(self, outputs: dict[str, Any], *args, **kwargs):
         print(dumps(outputs, indent=2))
         print(self.agent_name)
-        if "This output contains the appropriate swagger metadata file to use for the task at hand" in outputs["output"]:
+        if "this output contains the appropriate swagger metadata file to use for the task at hand" in outputs["output"].lower():
             configuration.selected_swagger_file = search(
                 r'"file_name":\s*"([^"]+)"', outputs["output"]
             ).group(1).replace("_metadata", "")
@@ -88,7 +89,7 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
         if "iteration limit" in outputs["output"] or "time limit" in outputs["output"]:
             message = outputs["output"] + "😵‍💫 Retrying..."
             self.chat_interface.send(
-                pn.pane.Alert(message, alert_type='warning'), 
+                pn.pane.Alert(message, alert_type='warning', styles=configuration.chat_styles), 
                 user="System", respond=False
             )
         else:
@@ -97,6 +98,16 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
                 outputs["output"],
                 self.agent_name,
             )
+        if "reload the crew" in outputs["output"].lower():
+            configuration.spinner.value=False
+            configuration.spinner.visible=False
+            self.chat_interface.send(
+                pn.pane.Markdown(
+                    object="If you have any other queries or need further assistance, please Reload the Crew.",
+                    styles=configuration.chat_styles
+                ),
+                user=self.agent_name, respond=False
+            )
         configuration.reload_button.disabled = False
 
     def send_event(
@@ -104,38 +115,56 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
         step_name: str,
         message: str,
         user: Optional[str] = None,
-    ) -> pn.Accordion:
+    ) -> pn.Card:
         custom_style = {
             "background": "#f9f9f9",
             "border": "1px solid black",
             "padding": "10px",
             "box-shadow": "5px 5px 5px #bcbcbc",
             "font-size": "1.2em",
-            "border-radius": "10px",
-            "overflow": "scroll",
+            "border-radius": "0.7rem",
+            "overflow-y": "scroll",
             "max-height": "20em",
-            "min-width": "50vw",
+            "margin": "0.7rem",
+            "display":"block",
         }
         markdown_input = pn.pane.Markdown(
             object=message,
         )
         markdown_input.styles = custom_style
         color = {
-            "Human Input Agent": "#aff7fa",
-            "API Selector Agent": "#fdeeb8",
-            "Decision Validator Agent": "#f4c4a9",
-            "API Caller Agent": "#ffa7cf",
-            "Task Matcher": "#c0e1fa",
-            "Swagger API Description Summarizer": "#e0f087",
-            "swagger_splitter": "#eba7f7",
+            "Human Input Agent": "#e2fcfd",
+            "API Selector Agent": "#fef6db",
+            "Decision Validator Agent": "#fbe7dd",
+            "API Caller Agent": "#ffe5f1",
+            "Task Matcher": "#e6f3fd",
+            "Swagger API Description Summarizer": "#f3f9cf",
+            "swagger_splitter": "#eedaff",
         }
-        accordion = pn.Accordion((step_name, markdown_input))
-        accordion.active_header_background = color[user]
-        accordion.header_background = color[user]
+        card = pn.Card(
+            markdown_input,
+            title=step_name,
+            collapsed=True,
+            header=f"""<html>
+                        <h4 style='
+                            margin:0.25rem;
+                            font-size:1.2em;
+                            font-weight:500;
+                            color: #111;
+                        '>{step_name}</h4>
+                    </html>""",
+            active_header_background=color[user],
+            header_background=color[user],
+            styles={
+                "border-bottom": "0.1rem solid #c0caca",
+                "border-radius": "0.25rem !important",
+            },
+            stylesheets=[card_stylesheet]
+        )
         configuration.spinner.value = False
         configuration.spinner.visible = False
         self.chat_interface.send(
-            accordion,
+            card,
             user=user,
             respond=False,
             avatar=f"{configuration.avatar_images[user]}",

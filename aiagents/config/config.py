@@ -39,6 +39,7 @@ class Initialize:
         self.metadata_summaries_path = join(
             self.generated_folder_path, "summaries", "metadata_summaries"
         )
+        self.openai_provider = "AZURE_OPENAI"
         self.selected_swagger_file = ""
         self.user_input = None
         self.first_run = pn.Param.param
@@ -62,6 +63,7 @@ class Initialize:
             "Swagger API Description Summarizer": f"{self.diagram_path}/metadata_summarizer_agent.jpg",
             "swagger_splitter": f"{self.diagram_path}/swagger_splitter_agent.jpg",
         }
+        self.chat_styles={"font-size": "1.2em"}
         self.crew_thread: threads.thread_with_trace = None
 
     def update_configuration(self):
@@ -74,7 +76,11 @@ class Initialize:
         #     api_key="gsk_",
         # )
 
-        self.llm = AzureChatOpenAI(azure_deployment="cml")
+        print("openai provider:", self.openai_provider)
+    
+        self.llm = AzureChatOpenAI(azure_deployment=environ.get(
+            "AZURE_OPENAI_DEPLOYMENT", "cml"
+        )) if self.openai_provider == "AZURE_OPENAI" else ChatOpenAI()
         self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.4))
         print("LLM temperature: ", self.llm.temperature)
 

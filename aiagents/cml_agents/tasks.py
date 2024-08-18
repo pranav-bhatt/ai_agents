@@ -2,7 +2,7 @@ from textwrap import dedent
 from typing import Dict
 
 from crewai import Task, Agent
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from aiagents.config import Initialize
 
@@ -63,6 +63,26 @@ class Tasks:
             agent=agents["human_input_agent"],
         )
 
+        class taskMatcherDecision(BaseModel):
+            """
+            This class is used to store the decision made by the task matcher agent. It has several fields:
+            - file_name: The file name of the appropriate swagger metadata file chosen.
+            - file_location: The path or location of the appropriate swagger metadata file chosen.
+            - task: The task at hand for which the swagger file was chosen.
+            - reason: The reasoning behind why the task matcher agent has decided to use this particular swagger metadata file.
+            - description: The description of this class used to identify the output
+            """
+
+            file_name: str
+            file_location: str
+            task: str
+            reason: str
+            description: str = Field("This output contains the appropriate swagger metadata file to use for the task at hand", frozen=True)
+
+            @field_validator('description')
+            def set_fixed_method(cls, v):
+                return "This output contains the appropriate swagger metadata file to use for the task at hand"
+
         self.task_matching_task = Task(
             description=dedent(
                 """
@@ -78,21 +98,22 @@ class Tasks:
                 5. Confirm the choice of API with the user by using the 'get_human_input' tool and make sure you provide 
                 the reasoning behind why you chose it. If there is only one API available, or if you are very confident about
                 the fact that a particular API can service the request, you can skip this step.
-                6. Return the location of the swagger metadata file that has been chosen in the exact json format as below and finish execution:
-                    'Format': {
-                        'Description': 'This output contains the appropriate swagger metadata file to use for the task at hand'
-                        'Appropriate Swagger Metadata File': {
-                                'file_name': <file_name>,
-                                'file_location': <file location>
-                        }
-                        'Task': <task>,
-                        'Reason': <why the file was chosen>
-                    }
-                    Remember that this format shouldn't vary in any situation
+                6. Return the location of the swagger metadata file that has been chosen in the exact structure as the 
+                taskMatcherDecision class with description 'This output contains the appropriate swagger metadata file 
+                to use for the task at hand' and finish execution.
                 """
             ),
             expected_output="A concise answer stating the exact location of the appropriate swagger metadata file, "
-            """as well as the reason why it is the one that has been chosen.""",
+            """as well as the reason why it is the one that has been chosen. The output should be of the structure 
+            of the taskMatcherDecision class. It has several fields:
+                - file_name: The file name of the appropriate swagger metadata file chosen.
+                - file_location: The path or location of the appropriate swagger metadata file chosen.
+                - task: The task at hand for which the swagger file was chosen.
+                - reason: The reasoning behind why the task matcher agent has decided to use this particular swagger metadata file.
+                - description: The description of this class which will be used to identify the output = 'This output contains 
+                the appropriate swagger metadata file to use for the task at hand'
+            """,
+            output_json=taskMatcherDecision,
             agent=agents["task_matching_agent"],
             context=[self.metadata_summarizer_task, self.initial_human_input_task],
         )
@@ -192,7 +213,9 @@ class Tasks:
                 6. Make the API call by triggering the API call tool. If the API call returns an error, try to deal with 
                 the error yourself. If you determine that the error needs user intervention / clarification from the user,
                 go ahead and ask the user the necessary query. Once you have the details, go ahead and try to make the API
-                call again.
+                call again. The 'api_caller' tool supports **kwargs which you can use to send any extra parameters such as
+                "API_BEARER_TOKEN" and "API_ENDPOINT" in case the API call returned an error due to incorrect API endpoint 
+                or Bearer token being used, and the user has provided you with rectified values when you reported the error.
                 7. Once a satisfactory output has been obtained, return the outcome of the api call.
                 8. Once the outcome is returned, using the 'get_human_input' tool, inform the user with the below prompt:
                 'Please Reload the Crew if you have any other queries to be answered', and finish the execution.

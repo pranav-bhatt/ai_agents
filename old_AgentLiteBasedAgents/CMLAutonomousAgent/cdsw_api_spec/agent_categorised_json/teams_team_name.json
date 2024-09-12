@@ -1,0 +1,1 @@
+{"/api/v2/teams/{team_name}":{"delete":{"summary":"Delete a team.","parameters":[{"name":"team_name","description":"name of the team you want to delete","required":true}]}}}

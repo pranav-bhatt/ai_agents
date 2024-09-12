@@ -1,0 +1,1 @@
+{"/api/v2/projects/{project_id}/applications/{application_id}:restart":{"post":{"summary":"Start an application.","parameters":[{"name":"project_id","description":"The public project identifier","required":true},{"name":"application_id","description":"The public application identifier","required":true}]}}}

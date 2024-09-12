@@ -1,0 +1,1 @@
+{"/api/v2/projects/{project_id}/files":{"post":{"summary":"upload a file as a multi-part upload","consumes":["multipart/form-data"],"parameters":[{"name":"project_id","description":"The project this model belongs to.","required":true},{"name":"file","description":"The file to upload, with the key being the location to upload to (relative to /home/cdsw)"}]}}}

@@ -1,0 +1,1 @@
+{"/api/v2/runtimes:validate":{"get":{"summary":"Validate a runtime, given the URL to the image in the docker registry","parameters":[{"name":"url","required":false}]}}}

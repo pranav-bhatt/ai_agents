@@ -1,0 +1,29 @@
+{
+    "/api/v2/projects/{project_id}/models/{model_id}/builds/{build_id}/deployments/{deployment_id}:stop": {
+        "post": {
+            "summary": "Stop a model deployment.",
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "ID of the project containing the model.",
+                    "required": true
+                },
+                {
+                    "name": "model_id",
+                    "description": "ID of the model containing the deployment.",
+                    "required": true
+                },
+                {
+                    "name": "build_id",
+                    "description": "ID of the build containing the deployment.",
+                    "required": true
+                },
+                {
+                    "name": "deployment_id",
+                    "description": "ID of the deployment to stop.",
+                    "required": true
+                }
+            ]
+        }
+    }
+}

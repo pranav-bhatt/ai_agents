@@ -1,0 +1,481 @@
+{
+    "/api/v2/copilot/model/{copilot_model_id}": {
+        "methods": {
+            "get": "Get a Copilot model."
+        },
+        "file": "copilot_model.json"
+    },
+    "/api/v2/copilot/models": {
+        "methods": {
+            "get": "List Copilot models, optionally filtered, sorted, and paginated.",
+            "post": "Create a Copilot model."
+        },
+        "file": "copilot_models.json"
+    },
+    "/api/v2/copilot/models/{copilot_model.id}": {
+        "methods": {
+            "patch": "Update a Copilot model."
+        },
+        "file": "copilot_models.json"
+    },
+    "/api/v2/copilot/models/{copilot_model_id}": {
+        "methods": {
+            "delete": "Delete a Copilot model."
+        },
+        "file": "copilot_models_copilot_model_id.json"
+    },
+    "/api/v2/experiments": {
+        "methods": {
+            "get": "Lists all experiments that belong to a user across all projects."
+        },
+        "file": "experiments.json"
+    },
+    "/api/v2/groupsquota": {
+        "methods": {
+            "get": "Return all the groups and its quotas based on the context. Admin gets all the groups details."
+        },
+        "file": "groupsquota.json"
+    },
+    "/api/v2/jobs": {
+        "methods": {
+            "get": "Returns all jobs a user has access to."
+        },
+        "file": "jobs.json"
+    },
+    "/api/v2/models": {
+        "methods": {
+            "get": "List all models that belong to a user across all projects."
+        },
+        "file": "models.json"
+    },
+    "/api/v2/newsfeeds/{category}": {
+        "methods": {
+            "get": "List the newsfeeds, optionally filtered, sorted, and paginated."
+        },
+        "file": "newsfeeds_category.json"
+    },
+    "/api/v2/nodelabels": {
+        "methods": {
+            "get": "List all Accelerator Node Label"
+        },
+        "file": "nodelabels.json"
+    },
+    "/api/v2/nodelabels/config": {
+        "methods": {
+            "patch": "Update admin_config_max_per_workload in Node Labels"
+        },
+        "file": "nodelabels_config.json"
+    },
+    "/api/v2/projectnames": {
+        "methods": {
+            "get": "Return all the project names the user has access to, optionally filtered, sorted, and paginated."
+        },
+        "file": "projectnames.json"
+    },
+    "/api/v2/projects": {
+        "methods": {
+            "get": "Return all projects, optionally filtered, sorted, and paginated.",
+            "post": "Create a new project."
+        },
+        "file": "projects.json"
+    },
+    "/api/v2/projects/batch": {
+        "methods": {
+            "get": "Return a list of projects given a list of project IDs. This method will only return\nprojects that the calling user has access to, and can be used in situations where\ninformation about a subset of projects (like project names) is needed."
+        },
+        "file": "projects_batch.json"
+    },
+    "/api/v2/projects/{experiment.project_id}/experiments/{experiment.id}": {
+        "methods": {
+            "patch": "Update an existing experiment."
+        },
+        "file": "projects_experiment.project_id_experiments.json"
+    },
+    "/api/v2/projects/{project.id}": {
+        "methods": {
+            "patch": "Update an existing project."
+        },
+        "file": "projects_project.id.json"
+    },
+    "/api/v2/projects/{project_id}": {
+        "methods": {
+            "get": "Return one project.",
+            "delete": "Delete a project."
+        },
+        "file": "projects_project_id.json"
+    },
+    "/api/v2/projects/{project_id}/applications": {
+        "methods": {
+            "get": "List applications, optionally filtered, sorted, and paginated.",
+            "post": "Create an application and implicitly start it immediately."
+        },
+        "file": "projects_project_id_applications.json"
+    },
+    "/api/v2/projects/{project_id}/applications/{application.id}": {
+        "methods": {
+            "patch": "Update an application"
+        },
+        "file": "projects_project_id_applications.json"
+    },
+    "/api/v2/projects/{project_id}/applications/{application_id}": {
+        "methods": {
+            "get": "Get an application.",
+            "delete": "Delete an application."
+        },
+        "file": "projects_project_id_applications.json"
+    },
+    "/api/v2/projects/{project_id}/applications/{application_id}:restart": {
+        "methods": {
+            "post": "Start an application."
+        },
+        "file": "projects_project_id_applications_application_id:restart.json"
+    },
+    "/api/v2/projects/{project_id}/applications/{application_id}:stop": {
+        "methods": {
+            "post": "Stop an application."
+        },
+        "file": "projects_project_id_applications_application_id:stop.json"
+    },
+    "/api/v2/projects/{project_id}/collaborators": {
+        "methods": {
+            "get": "List project collaborators."
+        },
+        "file": "projects_project_id_collaborators.json"
+    },
+    "/api/v2/projects/{project_id}/collaborators/{username}": {
+        "methods": {
+            "delete": "Delete a project collaborator",
+            "put": "Add a project collaborator"
+        },
+        "file": "projects_project_id_collaborators_username.json"
+    },
+    "/api/v2/projects/{project_id}/experiments": {
+        "methods": {
+            "get": "List all experiments in a given project.",
+            "post": "Create an experiment."
+        },
+        "file": "projects_project_id_experiments.json"
+    },
+    "/api/v2/projects/{project_id}/experiments/{experiment_id}": {
+        "methods": {
+            "get": "Return one experiment.",
+            "delete": "Delete an experiment that belongs to an experiment id."
+        },
+        "file": "projects_project_id_experiments_experiment_id.json"
+    },
+    "/api/v2/projects/{project_id}/experiments/{experiment_id}/runs": {
+        "methods": {
+            "get": "Returns a list of Runs that belong to an experiment.",
+            "post": "Create a run for an experiment."
+        },
+        "file": "projects_project_id_experiments_experiment_id.json"
+    },
+    "/api/v2/projects/{project_id}/experiments/{experiment_id}/runs/{run.id}": {
+        "methods": {
+            "patch": "Update an experiment run."
+        },
+        "file": "projects_project_id_experiments_experiment_id.json"
+    },
+    "/api/v2/projects/{project_id}/experiments/{experiment_id}/runs/{run_id}": {
+        "methods": {
+            "get": "Get metadata, metrics, params, tags and artifacts for a run. In the case where multiple metrics\nwith the same key are logged for a run, return only the value with the latest timestamp.\nIf there are multiple values with the latest timestamp, return the maximum of these values.",
+            "delete": "Delete an experiment run."
+        },
+        "file": "projects_project_id_experiments_experiment_id.json"
+    },
+    "/api/v2/projects/{project_id}/experiments/{experiment_id}/runs/{run_id}/metrics/{metric_key}": {
+        "methods": {
+            "get": "Gets the all the recorded metrics for the key for a given run."
+        },
+        "file": "projects_project_id_experiments_experiment_id_runs.json"
+    },
+    "/api/v2/projects/{project_id}/experiments/{experiment_id}/runs/{run_id}:deletebatch": {
+        "methods": {
+            "post": "Bulk delete an experiment run details like metrics, params, tags in one request."
+        },
+        "file": "projects_project_id_experiments_experiment_id_runs.json"
+    },
+    "/api/v2/projects/{project_id}/experiments/{experiment_id}/runs/{run_id}:logbatch": {
+        "methods": {
+            "post": "Bulk update an experiment run details like metrics, params, tags in one request."
+        },
+        "file": "projects_project_id_experiments_experiment_id_runs.json"
+    },
+    "/api/v2/projects/{project_id}/files/{path}": {
+        "methods": {
+            "get": "List files/subdirectories at a specified path",
+            "delete": "Delete a file or directory.",
+            "patch": "Update file metadata, such as renaming."
+        },
+        "file": "projects_project_id_files_path.json"
+    },
+    "/api/v2/projects/{project_id}/jobs": {
+        "methods": {
+            "get": "Returns all jobs, optionally filtered, sorted, and paginated.",
+            "post": "Create a new job."
+        },
+        "file": "projects_project_id_jobs.json"
+    },
+    "/api/v2/projects/{project_id}/jobs/{job.id}": {
+        "methods": {
+            "patch": "Updates a job."
+        },
+        "file": "projects_project_id_jobs_job.id.json"
+    },
+    "/api/v2/projects/{project_id}/jobs/{job_id}": {
+        "methods": {
+            "get": "Return one job.",
+            "delete": "Deletes a job."
+        },
+        "file": "projects_project_id_jobs_job_id.json"
+    },
+    "/api/v2/projects/{project_id}/jobs/{job_id}/runs": {
+        "methods": {
+            "get": "Lists job runs, optionally filtered, sorted, and paginated.",
+            "post": "Create and start a new job run for a job."
+        },
+        "file": "projects_project_id_jobs_job_id_runs.json"
+    },
+    "/api/v2/projects/{project_id}/jobs/{job_id}/runs/{run_id}": {
+        "methods": {
+            "get": "Gets a job run."
+        },
+        "file": "projects_project_id_jobs_job_id_runs.json"
+    },
+    "/api/v2/projects/{project_id}/jobs/{job_id}/runs/{run_id}:stop": {
+        "methods": {
+            "post": "Stops a job run. Encoded as a custom method."
+        },
+        "file": "projects_project_id_jobs_job_id_runs.json"
+    },
+    "/api/v2/projects/{project_id}/machineusers": {
+        "methods": {
+            "get": "Lists All Machine-User Collaborators"
+        },
+        "file": "projects_project_id_machineusers.json"
+    },
+    "/api/v2/projects/{project_id}/models": {
+        "methods": {
+            "get": "List models, optionally filtered, sorted, and paginated.",
+            "post": "Create a model."
+        },
+        "file": "projects_project_id_models.json"
+    },
+    "/api/v2/projects/{project_id}/models/{model.id}": {
+        "methods": {
+            "patch": "Update a model."
+        },
+        "file": "projects_project_id_models_model.id.json"
+    },
+    "/api/v2/projects/{project_id}/models/{model_id}": {
+        "methods": {
+            "get": "Get a model.",
+            "delete": "Delete a model."
+        },
+        "file": "projects_project_id_models_model_id.json"
+    },
+    "/api/v2/projects/{project_id}/models/{model_id}/builds": {
+        "methods": {
+            "get": "List model builds, optionally filtered, sorted, and paginated.",
+            "post": "Create a model build."
+        },
+        "file": "projects_project_id_models_model_id_builds.json"
+    },
+    "/api/v2/projects/{project_id}/models/{model_id}/builds/{build_id}": {
+        "methods": {
+            "get": "Get a model build.",
+            "delete": "Delete a model build."
+        },
+        "file": "projects_project_id_models_model_id_builds.json"
+    },
+    "/api/v2/projects/{project_id}/models/{model_id}/builds/{build_id}/deployments": {
+        "methods": {
+            "get": "List model deployments, optionally filtered, sorted, and paginated.",
+            "post": "Create a model deployment."
+        },
+        "file": "projects_project_id_models_model_id_builds.json"
+    },
+    "/api/v2/projects/{project_id}/models/{model_id}/builds/{build_id}/deployments/{deployment_id}": {
+        "methods": {
+            "get": "Get a model deployment."
+        },
+        "file": "projects_project_id_models_model_id_builds.json"
+    },
+    "/api/v2/projects/{project_id}/models/{model_id}/builds/{build_id}/deployments/{deployment_id}:restart": {
+        "methods": {
+            "post": "Restart a model deployment."
+        },
+        "file": "projects_project_id_models_model_id_builds.json"
+    },
+    "/api/v2/projects/{project_id}/models/{model_id}/builds/{build_id}/deployments/{deployment_id}:stop": {
+        "methods": {
+            "post": "Stop a model deployment."
+        },
+        "file": "projects_project_id_models_model_id_builds_build_id.json"
+    },
+    "/api/v2/registry/models": {
+        "methods": {
+            "get": "List registered models.",
+            "post": "Register a model.",
+            "patch": "Update a Registered model."
+        },
+        "file": "registry_models.json"
+    },
+    "/api/v2/registry/models/{model_id}": {
+        "methods": {
+            "get": "Get a registered model.",
+            "delete": "Unregister a model deletes a model.",
+            "patch": "Update a Registered model version."
+        },
+        "file": "registry_models_model_id.json"
+    },
+    "/api/v2/registry/models/{model_id}/versions/{version_id}": {
+        "methods": {
+            "get": "Get a registered model version",
+            "delete": "Unregister a model version."
+        },
+        "file": "registry_models_model_id_versions_version_id.json"
+    },
+    "/api/v2/runtimeaddons": {
+        "methods": {
+            "get": "List the available runtime addons, optionally filtered, sorted, and paginated."
+        },
+        "file": "runtimeaddons.json"
+    },
+    "/api/v2/runtimeaddons:updatestatus": {
+        "methods": {
+            "post": "Update runtime addons"
+        },
+        "file": "runtimeaddons:updatestatus.json"
+    },
+    "/api/v2/runtimerepos": {
+        "methods": {
+            "get": "List Runtime repos.",
+            "post": "Create a  Runtime repo."
+        },
+        "file": "runtimerepos.json"
+    },
+    "/api/v2/runtimerepos/{runtime_repo_id}": {
+        "methods": {
+            "delete": "Delete a Runtime repo."
+        },
+        "file": "runtimerepos_runtime_repo_id.json"
+    },
+    "/api/v2/runtimerepos/{runtimerepo.id}": {
+        "methods": {
+            "patch": "Update a Runtime repo."
+        },
+        "file": "runtimerepos_runtimerepo.id.json"
+    },
+    "/api/v2/runtimes": {
+        "methods": {
+            "get": "List the available runtimes, optionally filtered, sorted, and paginated.",
+            "post": "Register a runtime, given the URL to the image in the docker registry"
+        },
+        "file": "runtimes.json"
+    },
+    "/api/v2/runtimes:update": {
+        "methods": {
+            "post": "Update the status of selected runtimes"
+        },
+        "file": "runtimes:update.json"
+    },
+    "/api/v2/runtimes:validate": {
+        "methods": {
+            "get": "Validate a runtime, given the URL to the image in the docker registry"
+        },
+        "file": "runtimes:validate.json"
+    },
+    "/api/v2/site/config:update": {
+        "methods": {
+            "post": "Disable engines"
+        },
+        "file": "site_config:update.json"
+    },
+    "/api/v2/site/teams": {
+        "methods": {
+            "post": "Create a team."
+        },
+        "file": "site_teams.json"
+    },
+    "/api/v2/teams/{team_name}": {
+        "methods": {
+            "delete": "Delete a team."
+        },
+        "file": "teams_team_name.json"
+    },
+    "/api/v2/ts_data": {
+        "methods": {
+            "get": "Return the time series data for the requested resource or property."
+        },
+        "file": "ts_data.json"
+    },
+    "/api/v2/usage": {
+        "methods": {
+            "get": "Return the new usage view based on the caller context, optionally filtered, sorted, and paginated."
+        },
+        "file": "usage.json"
+    },
+    "/api/v2/users/{user_id}": {
+        "methods": {
+            "get": "Lists user details for specified user id."
+        },
+        "file": "users_user_id.json"
+    },
+    "/api/v2/users/{username}/v1_key:rotate": {
+        "methods": {
+            "post": "Rotate API V1 key"
+        },
+        "file": "users_username_v1_key:rotate.json"
+    },
+    "/api/v2/users/{username}/v2_keys": {
+        "methods": {
+            "get": "Get all API V2 keys",
+            "delete": "Delete all API V2 keys",
+            "post": "Create API V2 key"
+        },
+        "file": "users_username_v2_keys.json"
+    },
+    "/api/v2/users/{username}/v2_keys/{key_id}": {
+        "methods": {
+            "delete": "Delete an API V2 key"
+        },
+        "file": "users_username_v2_keys_key_id.json"
+    },
+    "/api/v2/usersquota": {
+        "methods": {
+            "get": "Return all the user names and quotas based on the context. Admin gets all the users details."
+        },
+        "file": "usersquota.json"
+    },
+    "/api/v2/workloadstatus": {
+        "methods": {
+            "get": "Return the workload statuses."
+        },
+        "file": "workloadstatus.json"
+    },
+    "/api/v2/workloadtypes": {
+        "methods": {
+            "get": "Return the workload types."
+        },
+        "file": "workloadtypes.json"
+    },
+    "/api/v2/projects/{project_id}/files": {
+        "methods": {
+            "post": "upload a file as a multi-part upload"
+        },
+        "file": "projects_project_id_files.json"
+    },
+    "/api/v2/projects/{project_id}/files/{path}:download": {
+        "methods": {
+            "post": "download a project file"
+        },
+        "file": "projects_project_id_files_path:download.json"
+    },
+    "/api/v2/runtimeaddons/custom": {
+        "methods": {
+            "post": "Create a new Custom Runtime Addon from an uploaded tarball"
+        },
+        "file": "runtimeaddons_custom.json"
+    }
+}

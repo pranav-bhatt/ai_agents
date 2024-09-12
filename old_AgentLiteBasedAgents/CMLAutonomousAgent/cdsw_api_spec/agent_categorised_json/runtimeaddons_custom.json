@@ -1,0 +1,1 @@
+{"/api/v2/runtimeaddons/custom":{"post":{"summary":"Create a new Custom Runtime Addon from an uploaded tarball","consumes":["multipart/form-data"],"parameters":[{"name":"metadata","required":true,"description":"Custom Runtime Addon metadata in JSON format."},{"name":"tarball","required":true,"description":"Tarball with the contents of the new Custom Runtime Addon"}]}}}

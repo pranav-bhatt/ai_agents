@@ -1,0 +1,1 @@
+{"/api/v2/copilot/model/{copilot_model_id}":{"get":{"summary":"Get a Copilot model.","parameters":[{"name":"copilot_model_id","description":"The Copilot model's ID.","required":true}]}}}

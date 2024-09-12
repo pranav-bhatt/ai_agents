@@ -1,0 +1,11 @@
+panel==1.4.4
+crewai-tools==0.4.7 
+crewai==0.35.5 
+langchain-community==0.2.6
+langchain==0.2.6
+langchain-core==0.2.15
+langchain-openai==0.1.14 
+load-dotenv==0.1.0
+jsonref==1.1.0 
+pydantic==2.8.2
+openapi-spec-validator==0.7.1

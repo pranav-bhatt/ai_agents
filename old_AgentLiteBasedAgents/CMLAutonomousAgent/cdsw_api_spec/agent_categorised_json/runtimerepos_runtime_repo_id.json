@@ -1,0 +1,1 @@
+{"/api/v2/runtimerepos/{runtime_repo_id}":{"delete":{"summary":"Delete a Runtime repo.","parameters":[{"name":"runtime_repo_id","description":"the id of the Runtime Repo to delete","required":true}]}}}

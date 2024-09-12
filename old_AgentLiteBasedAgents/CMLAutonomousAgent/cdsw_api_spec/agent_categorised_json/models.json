@@ -1,0 +1,1 @@
+{"/api/v2/models":{"get":{"summary":"List all models that belong to a user across all projects.","parameters":[{"name":"search_filter","required":false},{"name":"page_size","required":false},{"name":"page_token","required":false}]}}}

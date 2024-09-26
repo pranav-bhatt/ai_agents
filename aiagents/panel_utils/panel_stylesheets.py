@@ -8,6 +8,20 @@ input_stylesheet = """
     :host {
         --current-background-color: transparent;
     }
+    input[type=file].bk-input {
+        font-size: 0.7rem;
+        background-color: #faf7f7;
+    }
+    .bk-input:not([type='file']) {
+        font-size: 0.7rem;
+        background-color: #faf7f7;
+    }
+"""
+
+azure_input_stylesheet = """
+    .bk-input:not([type='file]) {
+        background-color: #f3eaea !important;
+    }
 """
 
 radio_button_stylesheet = """
@@ -28,7 +42,7 @@ radio_button_stylesheet = """
 button_stylesheet = """
     :host(.solid)
     .bk-btn.bk-btn-default {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 300;
         padding: 0.35rem 1rem;
         background-color: #dbdfcd;
@@ -36,7 +50,7 @@ button_stylesheet = """
     }
     :host(.solid)
     .bk-btn.bk-btn-primary {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 300;
         padding: 0.35rem 1rem;
         background-color: #33645a;
@@ -87,7 +101,7 @@ sidebar_styles = {
     "border-radius": "0.25rem",
     "max-height": "calc(100vh - 80px)",
     "min-height": "calc(100vh - 80px)",
-    "overflow-y":"scroll",
+    "overflow-y":"auto",
     "margin":"-0.3rem 0.1rem",
     "padding":"0.5rem 0.1rem", 
 }
@@ -95,5 +109,6 @@ sidebar_styles = {
 input_button_styles = {
     "font-size": "50px",
     "--surface-color": "#498080",
-    "--surface-text-color": "#ffffff"
+    "--surface-text-color": "#ffffff",
+    "background-color": "#f6f9f9"
 }

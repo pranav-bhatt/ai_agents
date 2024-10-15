@@ -35,9 +35,9 @@ pn.extension(design="material")
 
 # Environment variables to be stored in the .env file
 env_vars = {
-    "LLM_TEMPERATURE": "0.4",
-    "OPENAI_API_VERSION": "2024-08-06",
-    "OPENAI_EMBEDDING_MODEL": "gpt-4o",
+    "LLM_TEMPERATURE": "0.8",
+    "OPENAI_API_VERSION": "2024-02-01",
+    "OPENAI_EMBEDDING_MODEL": "text-embedding-ada-002",
 }
 
 # Create the .env file if it doesn't exist and populate it with predefined environment variables
@@ -147,6 +147,7 @@ def check_input_value(*events):
 
 # Define sidebar widgets
 
+
 # Label and input for selecting the OpenAI provider.
 openai_provider_label = pn.widgets.StaticText(
     value="OpenAI Provider", styles={"padding": "0 10px"}, width=370
@@ -160,17 +161,18 @@ openai_provider_input = pn.widgets.RadioButtonGroup(
     width=370,
 )
 
-# Inputs for Azure OpenAI related fields.
+
+    # Inputs for Azure OpenAI related fields.
 azure_deployment_input = pn.widgets.TextInput(
-    name="Azure OpenAI Deployment", 
+    name="Azure OpenAI Deployment   cml", 
     styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet, azure_input_stylesheet],
 )
 azure_endpoint_input = pn.widgets.TextInput(
-    name="Azure OpenAI Endpoint", 
+    name="Azure OpenAI Endpoint       https://cml-gpt-1.openai.azure.com", 
     styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet, azure_input_stylesheet],
 )
 azure_embedding_input = pn.widgets.TextInput(
-    name="Azure OpenAI Embedding",
+    name="Azure OpenAI Embedding   cml-embedding",
     styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet, azure_input_stylesheet],
 )
 
@@ -190,7 +192,7 @@ azure_details = pn.Card(azure_deployment_input,
 
 # Inputs for OpenAI key, API endpoint, API bearer token, and Swagger file.
 key_input = pn.widgets.PasswordInput(
-    name="OpenAI Key", placeholder="", styles={"font-size": "50px"}, width=370, stylesheets=[input_stylesheet]
+    name="OpenAI Key     6b5aeacf1b9c474fa484db1edf46ee33", placeholder="", styles={"font-size": "50px"}, width=370, stylesheets=[input_stylesheet]
 )
 url_input = pn.widgets.TextInput(
     name="API Endpoint", placeholder="", styles={"font-size": "50px"}, width=370, stylesheets=[input_stylesheet]

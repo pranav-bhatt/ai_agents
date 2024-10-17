@@ -162,7 +162,7 @@ openai_provider_input = pn.widgets.RadioButtonGroup(
 )
 
 
-    # Inputs for Azure OpenAI related fields.
+# Inputs for Azure OpenAI related fields.
 azure_deployment_input = pn.widgets.TextInput(
     name="Azure OpenAI Deployment   cml", 
     styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet, azure_input_stylesheet],
@@ -224,6 +224,9 @@ endpoint_alert.visible = False
 
 # Watch for changes in input values and trigger validations
 openai_provider_input.param.watch(check_input_value, "value")
+azure_deployment_input.param.watch(check_input_value, "value")
+azure_endpoint_input.param.watch(check_input_value, "value")
+azure_embedding_input.param.watch(check_input_value, "value")
 key_input.param.watch(check_input_value, "value")
 url_input.param.watch(check_input_value, "value")
 url_input.param.watch(validate_api_endpoint_input, "value")

@@ -146,40 +146,61 @@ class Tasks:
             context=[self.metadata_summarizer_task],
         )
 
-        class managerDecision(BaseModel):
-            """
-            This class is used to store the decision made by the manager agent. It has several fields:
-            - endpoint: The endpoint that the manager agent has decided needs to be used.
-            - method: The HTTP method that the manager agent has decided needs to be used.
-            - file: The location of the split metadata file associated with the endpoint..
-            - user_query: The original user query verbatim.
-            - reasoning: The reasoning behind why the manager agent has decided to use this particular endpoint and method .
-            """
+        # class managerDecision(BaseModel):
+        #     """
+        #     This class is used to store the decision made by the manager agent. It has several fields:
+        #     - endpoint: The endpoint that the manager agent has decided needs to be used.
+        #     - method: The HTTP method that the manager agent has decided needs to be used.
+        #     - file: The location of the split metadata file associated with the endpoint..
+        #     - user_query: The original user query verbatim.
+        #     - reasoning: The reasoning behind why the manager agent has decided to use this particular endpoint and method .
+        #     """
 
-            endpoint: str
-            method: str
-            file: str
-            user_query: str
-            reasoning: str
+        #     endpoint: str
+        #     method: str
+        #     file: str
+        #     user_query: str
+        #     reasoning: str
 
         self.manager_task = Task(
             description=dedent(
                 """
                 Follow the following steps:
                 1. Read the Metadata File:
-                    1. Use the 'file read tool' to retrieve the contents of the metadata file. The file location should be extracted from the 'task matcher' task’s context.
+                    1. Use the 'file read tool' to access the metadata file. The file location can be found in the context provided by the 'task matcher' agent.
                 2. Select Endpoint and HTTP Method:
-                    1. Analyze the contents of the metadata file to determine the most appropriate API endpoint and HTTP method.
-                    2. Match the user’s query to the endpoint descriptions by comparing the similarity between the user’s intent and the endpoint’s functionality.
-                3. Justify Your Choice:
-                    1. Present the selected endpoint and HTTP method along with a well-reasoned justification to the 'validator agent'. Ensure your explanation aligns with the user’s original query to demonstrate how it satisfies their request.
-                4. Respond to Validator Feedback:
-                    1. If the 'validator agent' provides suggestions for improvement, revise your selection as needed based on the feedback.
-                    2. Seek validation again after making adjustments.
-                5. Output Approved Data:
-                    1. Once the 'validator agent' confirms your endpoint and method choice, return the following:
-                        1. The file field associated with the approved endpoint.
-                        2. The original user query in verbatim form.
+                    1. Analyze the metadata to identify the Swagger file that contains the endpoint most suited to the user query.
+                    2. Match the user’s query to endpoint descriptions by evaluating the similarity between the user's intent and the function of the endpoint.
+                3. Justify Endpoint Selection:
+                    1. Present the selected endpoint and HTTP method to the 'decision validator' agent, explaining how it aligns with the user’s query. 
+                    2. Make sure the justification is clear and directly tied to the user’s request.
+                4. Handle Feedback from Validator:
+                    1. If the 'decision validator' agent provides feedback, revise the selection and justify the change. 
+                    2. Ensure the updated selection addresses the user's query, and seek validation again if necessary.
+                5. Provide Parameters to User:
+                    1. Extract both required and optional parameters from the selected endpoint's Swagger file.
+                    2. Present the user with a clear list of required and optional parameters:
+                        1. Required parameters: List them along with brief descriptions.
+                        2. Optional parameters: Highlight optional parameters and describe how they enhance functionality.
+                6. Request User Input:
+                    1. Prompt the user to provide values for the required parameters based on the last step. Ensure that the request is polite and clear.
+                    2. Proceed without optional parameters or use default values unless the user provides them or requests to include them.
+                7. Respond to Additional Queries:
+                    1. If the user requests further related information (e.g., related endpoints, more data from the Swagger file, 
+                    or related API calls), assist them accordingly by retrieving the relevant details or making additional API calls as needed.
+                8. Build and Confirm Payload:
+                    1. Construct the final payload for the API call using the user-provided values for the parameters.
+                    2. Display the payload to the user for their review and confirmation before proceeding with the API call.
+                9. Execute the API Call:
+                    1. Use the 'api_caller' tool to trigger the API call with the payload and intelligently handle any errors that occur during the process. 
+                    2. If the issue requires user input or clarification, invoke the 'get human input' tool to ask the user for the relevant information.
+                    3. Retry the API call once the issue is resolved with the updated parameters.
+                10. Return Results:
+                    1. Once the API call is successful, return the full result to the user. 
+                    2. If the result is complex, summarize it clearly and concisely to ensure easy understanding.
+                11. Completion and Follow-Up:
+                    1. After delivering the result, prompt the user with the message: “Please reload the crew if you have any further queries.”
+                    2. Conclude the task unless further actions are required.
                 """
             ),
             expected_output=dedent(
@@ -192,7 +213,7 @@ class Tasks:
                     - reasoning: The reasoning behind why the manager agent has decided to use this particular endpoint and method .
                 """
             ),
-            output_json=managerDecision,
+            # output_json=managerDecision,
             context=[
                 self.task_matching_task,
                 self.initial_human_input_task,
@@ -201,40 +222,40 @@ class Tasks:
             agent=agents["manager_agent"],
         )
 
-        self.api_calling_task = Task(
-            description=dedent(
-                """
-                Complete the following steps to make the API call, using the context obtained from the manager_task:
-                1. Identify the API Call:
-                    1. Using the context from the 'manager_task', locate the Swagger metadata file to identify the API endpoint required by the user. The full path for the API call file can be constructed by combining the manager task details with the '{configuration.generated_folder_path}'.
-                2. Determine Parameters:
-                    1. Review the Swagger file to extract both required and optional parameters for the API call.
-                    2. Provide the user with a well-formatted list of these parameters:
-                        1. Required parameters: Specify which parameters are mandatory for the call to succeed and give a brief description of each.
-                        2. Optional parameters: List optional parameters with a short description, indicating they are not necessary for the basic functionality but can provide extra control.
-                3. Request Missing Information:
-                    1. If any required parameters are missing, ask the user to provide the necessary values. Be polite yet clear when prompting for required parameters.
-                    2. If the user omits optional parameters, proceed without them unless instructed otherwise.
-                4. Fetch Additional Information (if needed):
-                    1. If the user’s request requires more information (such as unavailable details or references), communicate with the 'API Selector' for further clarification or additional API calls.
-                    2. Relay any retrieved information back to the user in a structured, easy-to-read format.
-                5. Build and Confirm Payload:
-                    1. Construct the final payload for the API call, including the required and optional parameters. Display the constructed payload to the user, ensuring they review and confirm it before proceeding.
-                6. Execute the API Call:
-                    1. Trigger the 'api_caller' tool to execute the API call with the payload. Handle any errors that arise:
-                        1. Handle Errors: If an error occurs, attempt to diagnose and resolve it yourself. If user input or clarification is necessary, ask for it.
-                7. Return Results:
-                    1. Once the API call is successful, return the output to the user. If needed, summarize the result in a clear and concise manner for easy understanding.
-                8. Completion & Further Instructions:
-                    1. After delivering the outcome, prompt the user with the following message: “Please reload the crew if you have any further queries.”
-                    2. Conclude the task execution unless further actions are required by the user.
-                """
-            ),
-            expected_output=dedent(
-                """
-                Output the result of the API call talking about the action that has been taken in a concise manner.
-                """
-            ),
-            agent=agents["api_caller_agent"],
-            context=[self.initial_human_input_task, self.manager_task],
-        )
+        # self.api_calling_task = Task(
+        #     description=dedent(
+        #         """
+        #         Complete the following steps to make the API call, using the context obtained from the manager_task:
+        #         1. Identify the API Call:
+        #             1. Using the context from the 'manager_task', locate the Swagger metadata file to identify the API endpoint required by the user. The full path for the API call file can be constructed by combining the manager task details with the '{configuration.generated_folder_path}'.
+        #         2. Determine Parameters:
+        #             1. Review the Swagger file to extract both required and optional parameters for the API call.
+        #             2. Provide the user with a well-formatted list of these parameters:
+        #                 1. Required parameters: Specify which parameters are mandatory for the call to succeed and give a brief description of each.
+        #                 2. Optional parameters: List optional parameters with a short description, indicating they are not necessary for the basic functionality but can provide extra control.
+        #         3. Request Missing Information:
+        #             1. If any required parameters are missing, ask the user to provide the necessary values. Be polite yet clear when prompting for required parameters.
+        #             2. If the user omits optional parameters, proceed without them unless instructed otherwise.
+        #         4. Fetch Additional Information (if needed):
+        #             1. If the user’s request requires more information (such as unavailable details or references), communicate with the 'API Selector' for further clarification or additional API calls.
+        #             2. Relay any retrieved information back to the user in a structured, easy-to-read format.
+        #         5. Build and Confirm Payload:
+        #             1. Construct the final payload for the API call, including the required and optional parameters. Display the constructed payload to the user, ensuring they review and confirm it before proceeding.
+        #         6. Execute the API Call:
+        #             1. Trigger the 'api_caller' tool to execute the API call with the payload. Handle any errors that arise:
+        #                 1. Handle Errors: If an error occurs, attempt to diagnose and resolve it yourself. If user input or clarification is necessary, ask for it.
+        #         7. Return Results:
+        #             1. Once the API call is successful, return the output to the user. If needed, summarize the result in a clear and concise manner for easy understanding.
+        #         8. Completion & Further Instructions:
+        #             1. After delivering the outcome, prompt the user with the following message: “Please reload the crew if you have any further queries.”
+        #             2. Conclude the task execution unless further actions are required by the user.
+        #         """
+        #     ),
+        #     expected_output=dedent(
+        #         """
+        #         Output the result of the API call talking about the action that has been taken in a concise manner.
+        #         """
+        #     ),
+        #     agent=agents["api_caller_agent"],
+        #     context=[self.initial_human_input_task, self.manager_task],
+        # )

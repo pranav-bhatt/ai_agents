@@ -47,7 +47,7 @@ def StartCrew(configuration: Initialize):
         "task_matching_agent": manager_agents.task_matching_agent,
         "manager_agent": manager_agents.manager_agent,
         "human_input_agent": agents.human_input_agent,
-        "api_caller_agent": agents.api_caller_agent,
+        # "api_caller_agent": agents.api_caller_agent,
         "validator_agent": agents.validator_agent,
     }
 
@@ -79,14 +79,14 @@ def StartCrew(configuration: Initialize):
             agent_dict["task_matching_agent"],
             agent_dict["manager_agent"],
             agent_dict["human_input_agent"],
-            agent_dict["api_caller_agent"],
+            # agent_dict["api_caller_agent"],
             agent_dict["validator_agent"],
         ],
         tasks=[
             tasks.initial_human_input_task,
             tasks.task_matching_task,
             tasks.manager_task,
-            tasks.api_calling_task,
+            # tasks.api_calling_task,
         ],
         verbose=1,
         memory=False,
@@ -95,6 +95,13 @@ def StartCrew(configuration: Initialize):
 
     try:
         splitterCrew.kickoff()
+        configuration.chat_interface.send(
+            user="System",
+            value="Crew Terminated. Please Reload the Crew.",
+            respond=False
+        )
+        configuration.spinner.visible=False
+        configuration.spinner.value=False
     
     except Exception as err:
         configuration.chat_interface.send(

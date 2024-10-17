@@ -95,13 +95,6 @@ def StartCrew(configuration: Initialize):
 
     try:
         splitterCrew.kickoff()
-        configuration.chat_interface.send(
-            user="System",
-            value="Crew Terminated. Please Reload the Crew.",
-            respond=False
-        )
-        configuration.spinner.visible=False
-        configuration.spinner.value=False
     
     except Exception as err:
         configuration.chat_interface.send(

@@ -2,7 +2,7 @@ from textwrap import dedent
 
 from crewai import Agent
 from crewai_tools import FileReadTool
-
+from .callback_utils import custom_callback
 from .tools import (
     generated_directory_lister,
     metadata_summary_fetcher,
@@ -29,6 +29,7 @@ class ManagerAgents:
             tools=[metadata_summary_fetcher, get_human_input],
             llm=configuration.llm,
             callbacks=configuration.customCallbacks,
+            step_callback=custom_callback
         )
 
         self.manager_agent = Agent(
@@ -75,4 +76,5 @@ class ManagerAgents:
             llm=configuration.llm,
             allow_delegation=False,
             callbacks=configuration.customCallbacks,
+            step_callback=custom_callback
         )

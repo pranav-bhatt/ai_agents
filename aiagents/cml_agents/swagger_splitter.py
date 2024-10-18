@@ -7,6 +7,7 @@ from .tools import (
     generated_directory_lister,
     swagger_directory_lister,
 )
+from .callback_utils import custom_callback
 
 from aiagents.config import Initialize
 
@@ -70,4 +71,5 @@ class SwaggerSplitterAgents:
             ],
             llm=configuration.llm,
             callbacks=configuration.customCallbacks,
+            step_callback=custom_callback
         )

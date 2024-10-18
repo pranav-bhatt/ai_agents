@@ -9,7 +9,7 @@ from aiagents.cml_agents.manager_agents import ManagerAgents
 from aiagents.cml_agents.swagger_splitter import SwaggerSplitterAgents
 from aiagents.cml_agents.agents import Agents
 from aiagents.cml_agents.parse_for_manager import swagger_parser
-
+from aiagents.cml_agents.callback_utils import custom_callback
 from aiagents.cml_agents.tasks import Tasks
 
 from aiagents.config import Initialize
@@ -91,6 +91,7 @@ def StartCrew(configuration: Initialize):
         verbose=1,
         memory=False,
         embedder=embedding,
+        task_callback=custom_callback
     )
 
     try:

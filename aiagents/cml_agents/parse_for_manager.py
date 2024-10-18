@@ -1,128 +1,99 @@
 import os
 import json
+import yaml
 import jsonref
 
+class CustomJSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder to handle circular references."""
+    def default(self, obj):
+        # Handle specific types that may cause issues
+        if isinstance(obj, dict):
+            return {key: self.default(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self.default(element) for element in obj]
+        return super().default(obj)
 
-def remove_unnecessary_keys(dictionary, useless_keys):
+def read_swagger_file(swagger_file_location):
     """
-    since the original swagger contains a ton of unnecessary metadata occupying
-    valuable character count, we remove those extra fields
+    Reads a Swagger file in JSON or YAML format and returns the parsed data.
+    
+    :param swagger_file_location: The path to the Swagger file
+    :return: Parsed Swagger data as a Python dictionary
     """
-    if isinstance(dictionary, dict):
-        for key, value in list(dictionary.items()):
-            if key in useless_keys:
-                del dictionary[key]
-            else:
-                remove_unnecessary_keys(value, useless_keys)
-    elif isinstance(dictionary, list):
-        for item in dictionary:
-            remove_unnecessary_keys(item, useless_keys)
+    if swagger_file_location.endswith('.json'):
+        with open(swagger_file_location, 'r') as file:
+            return json.load(file)
+    elif swagger_file_location.endswith('.yaml') or swagger_file_location.endswith('.yml'):
+        with open(swagger_file_location, 'r') as file:
+            return yaml.safe_load(file)
+    else:
+        raise ValueError(f"Unsupported file format: {swagger_file_location}")
 
+def split_swagger_by_paths(swagger_data):
+    """Split the Swagger file into chunks based on the API paths."""
+    chunks = {}
+    paths = swagger_data.get('paths', {})
+    
+    for path, methods in paths.items():
+        chunk = {
+            "path": path,
+            "methods": methods  # Ensure 'methods' is directly taken as a dictionary
+        }
+        chunks[path] = chunk
+    return chunks
 
-def bucketer(swagger, threshold=2):
+def sanitize_file_name(name):
+    """Sanitize the file name by replacing invalid characters."""
+    return name.replace('/', '_').replace('\\', '_')
+
+def swagger_parser(swagger_file_name: str, swagger_file_root: str, generated_folder_root: str):
     """
-    The following code buckets the paths in the swagger specification by path segment
-    in order to have small json files that can be easily consumed
+    Processes a single Swagger file, splits it into individual files based on paths,
+    and stores them in a specified directory structure.
+    This version is optimized for large Swagger files.
     """
-    buckets = {}
-    for path, methods in swagger["paths"].items():
-        path_parts = path.split("/")
-        path_parts = [
-            s.split(":", 1)[0].lstrip("{").rstrip("}")
-            + (":" + s.split(":", 1)[1] if ":" in s else "")
-            for s in path_parts
-        ]
-
-        bucket_name = (
-            "_".join(path_parts[3 : 3 + threshold])
-            if len(path_parts) > 3
-            else path_parts[3]
-        )
-        while bucket_name in buckets and len(buckets[bucket_name]) >= threshold:
-            threshold += 1
-            bucket_name = (
-                "_".join(path_parts[3 : 3 + threshold])
-                if len(path_parts) > 3
-                else path_parts[3]
-            )
-
-        if bucket_name not in buckets:
-            buckets[bucket_name] = {}
-
-        buckets[bucket_name][path] = methods
-    return buckets
-
-
-def swagger_parser(
-    swagger_file_name: str,
-    swagger_file_root: str,
-    generated_folder_root: str,
-):
+    # Define the path to the swagger file and the output folder for chunks
     swagger_file_location = os.path.join(swagger_file_root, swagger_file_name)
     bucket_folder_name = swagger_file_name.split(".json")[0]
 
-    swagger = jsonref.load(
-        open(swagger_file_location), lazy_load=False, proxies=False, merge_props=True
-    )
-    # remove unnecessary ref definitions
-    if "definitions" in swagger:
-        del swagger["definitions"]
+    # Read the Swagger file using the new read function
+    swagger_data = read_swagger_file(swagger_file_location)
 
-    useless_keys = [
-        "type",
-        "in",
-        "readOnly",
-        "format",
-        "responses",
-        "operationId",
-        "tags",
-    ]
-    remove_unnecessary_keys(swagger, useless_keys)
+    # Create the output directory for the Swagger file chunks
+    output_dir = os.path.join(generated_folder_root, bucket_folder_name)
+    os.makedirs(output_dir, exist_ok=True)
 
-    buckets = bucketer(swagger)
+    # Initialize metadata to map paths to files
     metadata = {}
 
-    os.makedirs(
-        os.path.join(generated_folder_root, bucket_folder_name),
-        exist_ok=True,
-    )
+    chunks = split_swagger_by_paths(swagger_data)
 
-    # we need a metadata file that will allow for direct mapping of paths to relevant json file
-    for bucket_name, paths in buckets.items():
-        # set the initial data for manager metadata along with where the files are being stored
-        for path in paths:
-            metadata[path] = {}
-            metadata[path]["methods"] = {}
-            metadata[path][
-                "file"
-            ] = f"{generated_folder_root}/{bucket_folder_name}/{bucket_name}.json"
+    # Write each path chunk into the respective JSON file in the correct folder
+    for path, chunk in chunks.items():
+        sanitized_key = sanitize_file_name(path)
+        chunk_file_name = os.path.join(output_dir, f"{sanitized_key}.json")
+        
+        with open(chunk_file_name, 'w') as file:
+            json.dump(chunk, file, cls=CustomJSONEncoder, indent=2)
 
-            for method in paths[path]:
-                metadata[path]["methods"][method] = paths[path][method]["summary"]
+        # Populate the metadata for mapping paths to chunk files
+        methods_metadata = {}
+        for method, details in chunk["methods"].items():
+            if isinstance(details, dict):  # Check if details is a dictionary
+                # Attempt to get a summary, falling back to description if not available
+                summary = details.get("summary") or details.get("description", "")
+            else:
+                summary = ""  # If details is not a dictionary, set summary to empty
+            
+            methods_metadata[method] = summary
 
-        # populate the individual json files with api information
-        json.dump(
-            paths,
-            open(
-                os.path.join(
-                    generated_folder_root,
-                    bucket_folder_name,
-                    f"{bucket_name}.json",
-                ),
-                "w",
-            ),
-            separators=(",", ":"),
-        )
+        metadata[path] = {
+            "methods": methods_metadata,
+            "file": chunk_file_name
+        }
 
-    # create the manager metadata
-    json.dump(
-        metadata,
-        open(
-            os.path.join(
-                generated_folder_root,
-                f"{bucket_folder_name}_metadata.json",
-            ),
-            "w",
-        ),
-        separators=(",", ":"),
-    )
+    # Write the metadata after processing all paths
+    metadata_file_path = os.path.join(generated_folder_root, f"{bucket_folder_name}_metadata.json")
+    with open(metadata_file_path, 'w') as f:
+        json.dump(metadata, f, cls=CustomJSONEncoder, separators=(",", ":"))
+    print(f"Written metadata to: {metadata_file_path}")

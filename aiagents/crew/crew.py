@@ -1,4 +1,6 @@
-from os import environ
+from os import environ, listdir
+import os
+import shutil
 
 from crewai import Crew
 import panel as pn
@@ -6,6 +8,7 @@ import panel as pn
 from aiagents.cml_agents.manager_agents import ManagerAgents
 from aiagents.cml_agents.swagger_splitter import SwaggerSplitterAgents
 from aiagents.cml_agents.agents import Agents
+from aiagents.cml_agents.parse_for_manager import swagger_parser
 
 from aiagents.cml_agents.tasks import Tasks
 
@@ -19,13 +22,32 @@ def StartCrew(configuration: Initialize):
     swagger_splitter_agents = SwaggerSplitterAgents(configuration=configuration)
     agents = Agents(configuration=configuration)
 
+    ##please call swagger splitter here
+
+    ## if generated folder has any entris delete the same.
+
+    # """Delete all files and subdirectories inside the specified directory."""
+    if os.path.exists(configuration.generated_folder_path):
+        # Remove the directory and all its contents
+        shutil.rmtree(configuration.generated_folder_path)
+        # Recreate the empty directory
+        os.makedirs(configuration.generated_folder_path)
+
+    for filename in listdir(configuration.swagger_files_directory):
+            if filename.endswith(".json"):
+                swagger_parser(
+                    filename,
+                    configuration.swagger_files_directory,
+                    configuration.generated_folder_path,
+                )
+
     agent_dict = {
-        "swagger_splitter_agent": swagger_splitter_agents.swagger_splitter_agent,
+        # "swagger_splitter_agent": swagger_splitter_agents.swagger_splitter_agent,
         "metadata_summarizer_agent": swagger_splitter_agents.metadata_summarizer_agent,
         "task_matching_agent": manager_agents.task_matching_agent,
         "manager_agent": manager_agents.manager_agent,
         "human_input_agent": agents.human_input_agent,
-        "api_caller_agent": agents.api_caller_agent,
+        # "api_caller_agent": agents.api_caller_agent,
         "validator_agent": agents.validator_agent,
     }
 
@@ -52,34 +74,27 @@ def StartCrew(configuration: Initialize):
 
     splitterCrew = Crew(
         agents=[
-            agent_dict["swagger_splitter_agent"],
+            # agent_dict["swagger_splitter_agent"],
             agent_dict["metadata_summarizer_agent"],
             agent_dict["task_matching_agent"],
             agent_dict["manager_agent"],
             agent_dict["human_input_agent"],
-            agent_dict["api_caller_agent"],
+            # agent_dict["api_caller_agent"],
             agent_dict["validator_agent"],
         ],
         tasks=[
             tasks.initial_human_input_task,
             tasks.task_matching_task,
             tasks.manager_task,
-            tasks.api_calling_task,
+            # tasks.api_calling_task,
         ],
         verbose=1,
-        memory=True,
+        memory=False,
         embedder=embedding,
     )
 
     try:
         splitterCrew.kickoff()
-        configuration.chat_interface.send(
-            user="System",
-            value="Crew Terminated. Please Reload the Crew.",
-            respond=False
-        )
-        configuration.spinner.visible=False
-        configuration.spinner.value=False
     
     except Exception as err:
         configuration.chat_interface.send(

@@ -10,18 +10,8 @@ from .tools import (
 from .callback_utils import custom_callback
 
 from aiagents.config import Initialize
-from dotenv import load_dotenv, find_dotenv
-from os import environ
-from langchain_openai import AzureChatOpenAI, ChatOpenAI
-
-from aiagents.config import Initialize
 
 
-llm = AzureChatOpenAI(azure_deployment=environ.get(
-            "AZURE_OPENAI_DEPLOYMENT", "cml"
-        )) #if openai_provider == "AZURE_OPENAI" else ChatOpenAI()
-llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.8))
-print("LLM temperature: ", llm.temperature)
 
 
 class SwaggerSplitterAgents:
@@ -81,7 +71,7 @@ class SwaggerSplitterAgents:
                 summary_generator,
                 generated_directory_lister,
             ],
-            llm=llm,
+            llm=configuration.llm,
             callbacks=configuration.customCallbacks,
             step_callback=custom_callback
         )

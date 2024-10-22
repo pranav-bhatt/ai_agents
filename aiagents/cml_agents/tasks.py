@@ -43,7 +43,7 @@ class Tasks:
             ),
             expected_output="A concise answer stating the exact location of the final generated metadata summary file.",
             agent=agents["metadata_summarizer_agent"],
-            output_json=metadata_summaries,
+            #output_json=metadata_summaries,
             output_file=f"{configuration.generated_folder_path}/metadata_summaries",
             # context=[self.splitter_task],
         )
@@ -61,6 +61,7 @@ class Tasks:
                 """
             ),
             agent=agents["human_input_agent"],
+            context=[self.metadata_summarizer_task],
         )
 
         class taskMatcherDecision(BaseModel):
@@ -117,7 +118,7 @@ class Tasks:
             """,
             output_json=taskMatcherDecision,
             agent=agents["task_matching_agent"],
-            context=[self.metadata_summarizer_task, self.initial_human_input_task],
+            context=[ self.initial_human_input_task],
         )
 
         self.validator_task = Task(

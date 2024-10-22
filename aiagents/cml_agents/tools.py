@@ -153,7 +153,14 @@ class SummaryGenerator(BaseTool):
 
         human_template = """
         Generate a summary of the below provided metadata that is descriptive and concise. 
-        Make sure it captures all details of the capabilities of the API, but is as short as possible.
+        Based on the provided API metadata, generate a detailed overview of the API's capabilities. Structure your response clearly to match the following categories:
+
+        Endpoints: List all available endpoints with a brief description of each.
+        Methods: Identify the HTTP methods (e.g., GET, POST) supported by each endpoint.
+        Parameters: Detail required and optional parameters, including data types and descriptions for each endpoint.
+        Authentication: Describe the authentication methods (e.g., API key, OAuth) needed to access the API.
+        Use Cases: Suggest specific use cases for the API based on its capabilities.
+        Ensure that your response is structured in a way that is straightforward for developers to understand and use for integration tasks and can be matched with task in plain english.
 
         ```
         {json_content}

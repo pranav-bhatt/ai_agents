@@ -10,7 +10,7 @@ from aiagents.cml_agents.swagger_splitter import SwaggerSplitterAgents
 from aiagents.cml_agents.agents import Agents
 from aiagents.cml_agents.parse_for_manager import swagger_parser
 from aiagents.cml_agents.callback_utils import custom_callback
-from aiagents.cml_agents.tasks import Tasks
+from aiagents.cml_agents.tasks import Tasks, TasksInitialize
 
 from aiagents.config import Initialize
 
@@ -18,9 +18,9 @@ from aiagents.config import Initialize
 # we can't directly import the agents and tasks because we want to ensure that the configuration is first
 # initialize the configuration with panel hooks, and then pass it as an argument
 def StartCrewInitialization(configuration: Initialize):
-    manager_agents = ManagerAgents(configuration=configuration)
+    #manager_agents = ManagerAgents(configuration=configuration)
     swagger_splitter_agents = SwaggerSplitterAgents(configuration=configuration)
-    agents = Agents(configuration=configuration)
+    #agents = Agents(configuration=configuration)
     ##please call swagger splitter here
 
     ## if generated folder has any entries delete the same.
@@ -43,7 +43,7 @@ def StartCrewInitialization(configuration: Initialize):
         # "swagger_splitter_agent": swagger_splitter_agents.swagger_splitter_agent,
         "metadata_summarizer_agent": swagger_splitter_agents.metadata_summarizer_agent,
     }
-    tasks = Tasks(configuration=configuration, agents=agent_dict)
+    tasks = TasksInitialize(configuration=configuration, agents=agent_dict)
     embedding = {
         "provider": "azure_openai",
         "config": {

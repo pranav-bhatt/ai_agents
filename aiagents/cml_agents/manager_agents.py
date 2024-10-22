@@ -1,5 +1,5 @@
 from textwrap import dedent
-
+from os import environ
 from crewai import Agent
 from crewai_tools import FileReadTool
 from .callback_utils import custom_callback
@@ -10,8 +10,18 @@ from .tools import (
     api_caller
 )
 
+from dotenv import load_dotenv, find_dotenv
+
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
+
 from aiagents.config import Initialize
 
+
+llm = AzureChatOpenAI(azure_deployment=environ.get(
+            "AZURE_OPENAI_DEPLOYMENT", "cml"
+        )) #if openai_provider == "AZURE_OPENAI" else ChatOpenAI()
+llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.8))
+print("LLM temperature: ", llm.temperature)
 
 class ManagerAgents:
     def __init__(self, configuration: Initialize) -> None:
@@ -73,8 +83,8 @@ class ManagerAgents:
             ),
             verbose=True,
             tools=[FileReadTool(), generated_directory_lister, api_caller, get_human_input],
-            llm=configuration.llm,
+            llm=llm,
             allow_delegation=False,
-            callbacks=configuration.customCallbacks,
+            #callbacks=configuration.customCallbacks,
             step_callback=custom_callback
         )

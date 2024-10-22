@@ -6,7 +6,6 @@ from json import loads, dump
 import time
 from openapi_spec_validator import validate
 from requests import head, exceptions
-
 from aiagents.crew import StartCrew
 from aiagents.panel_utils import CustomPanelCallbackHandler
 from aiagents.panel_utils.panel_stylesheets import (
@@ -467,6 +466,8 @@ def main():
         start=True,
         autoreload=True,
     )
+
+    fastapp = 
 
 
 # Call the main function to start the application

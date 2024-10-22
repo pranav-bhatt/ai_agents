@@ -6,6 +6,50 @@ from pydantic import BaseModel, Field, field_validator
 
 from aiagents.config import Initialize
 
+class TasksInitialize:
+    def __init__(self, configuration: Initialize, agents: Dict[str, Agent]) -> None:
+        # self.splitter_task = Task(
+        #     description=dedent(
+        #         """
+        #         Find all the swagger files present in the target swagger directory and then split each swagger file.
+        #         * If the folder called 'generated' is already present, consider this task as complete, and take no 
+        #         further actions.
+        #         * If the generated folder is not present, run the swagger splitter tool.
+                
+        #         Make no assumptions whatsoever.
+        #         """
+        #     ),
+        #     expected_output="A concise answer stating the exact location of all the generated swagger metadata files.",
+        #     agent=agents["swagger_splitter_agent"],
+        # )
+
+        class metadata_summaries(BaseModel):
+            summaries: dict[str, str]
+
+        self.metadata_summarizer_task = Task(
+            description=dedent(
+                f"""
+                Trigger the 'summary_generator' tool. This tool will automatically pick up the necessary swagger files
+                from the {configuration.generated_folder_path}, and generate a summary for each of them. It outputs a structured
+                k:v pair json, where the key is the location of the summarized swagger file, and the value is 
+                the generated summary.
+
+                If the metadata summary has already been generated, consider this task as complete, and take no 
+                further actions.
+
+                Make no assumptions whatsoever.
+                """
+            ),
+            expected_output="A concise answer stating the exact location of the final generated metadata summary file.",
+            agent=agents["metadata_summarizer_agent"],
+            #output_json=metadata_summaries,
+            output_file=f"{configuration.generated_folder_path}/metadata_summaries",
+            # context=[self.splitter_task],
+        )
+
+
+
+
 
 class Tasks:
     def __init__(self, configuration: Initialize, agents: Dict[str, Agent]) -> None:

@@ -99,7 +99,7 @@ class Initialize:
         self.llm = AzureChatOpenAI(azure_deployment=environ.get(
             "AZURE_OPENAI_DEPLOYMENT", "cml"
         )) if self.openai_provider == "AZURE_OPENAI" else ChatOpenAI()
-        self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.8))
+        self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.5))
         print("LLM temperature: ", self.llm.temperature)
 
 

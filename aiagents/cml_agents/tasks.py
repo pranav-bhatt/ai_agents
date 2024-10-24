@@ -68,29 +68,29 @@ class Tasks:
         #     agent=agents["swagger_splitter_agent"],
         # )
 
-        class metadata_summaries(BaseModel):
-            summaries: dict[str, str]
+        # class metadata_summaries(BaseModel):
+        #     summaries: dict[str, str]
 
-        self.metadata_summarizer_task = Task(
-            description=dedent(
-                f"""
-                Trigger the 'summary_generator' tool. This tool will automatically pick up the necessary swagger files
-                from the {configuration.generated_folder_path}, and generate a summary for each of them. It outputs a structured
-                k:v pair json, where the key is the location of the summarized swagger file, and the value is 
-                the generated summary.
+        # self.metadata_summarizer_task = Task(
+        #     description=dedent(
+        #         f"""
+        #         Trigger the 'summary_generator' tool. This tool will automatically pick up the necessary swagger files
+        #         from the {configuration.generated_folder_path}, and generate a summary for each of them. It outputs a structured
+        #         k:v pair json, where the key is the location of the summarized swagger file, and the value is 
+        #         the generated summary.
 
-                If the metadata summary has already been generated, consider this task as complete, and take no 
-                further actions.
+        #         If the metadata summary has already been generated, consider this task as complete, and take no 
+        #         further actions.
 
-                Make no assumptions whatsoever.
-                """
-            ),
-            expected_output="A concise answer stating the exact location of the final generated metadata summary file.",
-            agent=agents["metadata_summarizer_agent"],
-            #output_json=metadata_summaries,
-            output_file=f"{configuration.generated_folder_path}/metadata_summaries",
-            # context=[self.splitter_task],
-        )
+        #         Make no assumptions whatsoever.
+        #         """
+        #     ),
+        #     expected_output="A concise answer stating the exact location of the final generated metadata summary file.",
+        #     agent=agents["metadata_summarizer_agent"],
+        #     #output_json=metadata_summaries,
+        #     output_file=f"{configuration.generated_folder_path}/metadata_summaries",
+        #     # context=[self.splitter_task],
+        # )
 
         self.initial_human_input_task = Task(
             description=dedent(
@@ -105,7 +105,7 @@ class Tasks:
                 """
             ),
             agent=agents["human_input_agent"],
-            context=[self.metadata_summarizer_task],
+            #context=[self.metadata_summarizer_task],
         )
 
         class taskMatcherDecision(BaseModel):
@@ -133,7 +133,7 @@ class Tasks:
                 """
                 Complete the following steps:
                 1. Fetch Metadata Summary:
-                    1. Use the 'file read tool' to retrieve the metadata summary file. Ensure the contents are fully loaded before proceeding.
+                    1. Use the 'file read tool' to retrieve the metadata summary file. Ensure the contents are fully loaded before proceeding. If and only if no metadata summary file is available, return an error message indicating no API spec is available and Finish Execution by throwing an error with apt messaging..
                 2. Identify the Relevant Swagger File:
                     1. Review the metadata file, which consists of key-value pairs where each key is the path of a Swagger file and each value is a summary.
                     2. Based on the context provided by the human input task, analyze the summaries to determine which Swagger file aligns best with the task requirements.
@@ -188,7 +188,7 @@ class Tasks:
                 """
             ),
             agent=agents["validator_agent"],
-            context=[self.metadata_summarizer_task],
+            #context=[self.metadata_summarizer_task],
         )
 
         # class managerDecision(BaseModel):
@@ -242,9 +242,9 @@ class Tasks:
                     3. Retry the API call once the issue is resolved with the updated parameters.
                 10. Return Results:
                     1. Once the API call is successful, return the full result to the user. 
-                    2. If the result is complex, summarize it clearly and concisely to ensure easy understanding.
+                    2. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user.
                 11. Completion and Follow-Up:
-                    1. After delivering the result, prompt the user with the message: “Please reload the crew if you have any further queries.”
+                    1. After delivering the result of the above api call, after a few newlines in the output, prompt the user with the message: “Please reload the crew if you have any further queries.”
                     2. Conclude the task unless further actions are required.
                 """
             ),

@@ -6,7 +6,7 @@ from json import loads, dump
 import time
 from openapi_spec_validator import validate
 from requests import head, exceptions
-from aiagents.crew import StartCrew
+from aiagents.crew import StartCrewInteraction
 from aiagents.panel_utils import CustomPanelCallbackHandler
 from aiagents.panel_utils.panel_stylesheets import (
     alert_stylesheet,
@@ -84,7 +84,7 @@ def session_created(session_context: BokehSessionContext):
     configuration.spinner.value = True
     configuration.spinner.visible = True
     configuration.crew_thread = threads.thread_with_trace(
-        target=StartCrew, args=(configuration,)
+        target=StartCrewInteraction, args=(configuration,)
     )
     configuration.crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
     configuration.crew_thread.start()
@@ -273,22 +273,22 @@ def handle_inputs(event):
             set_key(env_file, "AZURE_OPENAI_ENDPOINT", azure_endpoint_input.value)
 
     # Handle the uploaded Swagger file: delete old file, create the directory, and save the new file
-    if file_input.value:
-        try:
-            rmtree(configuration.generated_folder_path) # Remove old generated folder if it exists
-        except FileNotFoundError:
-            pass
+    # if file_input.value:
+    #     try:
+    #         rmtree(configuration.generated_folder_path) # Remove old generated folder if it exists
+    #     except FileNotFoundError:
+    #         pass
 
-        # If the directory for Swagger files does not exist, create it
-        if not path.exists(configuration.swagger_files_directory):
-            makedirs(configuration.swagger_files_directory)
-        # Save the uploaded Swagger file in the designated directory
-        file_path = path.join(
-            configuration.swagger_files_directory, file_input.filename
-        )
-        file_content = loads(file_input.value.decode())
-        with open(file_path, "w") as file:
-            dump(file_content, file, indent=4)
+    #     # If the directory for Swagger files does not exist, create it
+    #     if not path.exists(configuration.swagger_files_directory):
+    #         makedirs(configuration.swagger_files_directory)
+    #     # Save the uploaded Swagger file in the designated directory
+    #     file_path = path.join(
+    #         configuration.swagger_files_directory, file_input.filename
+    #     )
+    #     file_content = loads(file_input.value.decode())
+    #     with open(file_path, "w") as file:
+    #         dump(file_content, file, indent=4)
 
     configuration.update_configuration() # Update the configuration with the new values
     # Reset input values, disable the 'Upload' button, and enable the 'Start Crew' button after upload
@@ -467,7 +467,6 @@ def main():
         autoreload=True,
     )
 
-    fastapp = 
 
 
 # Call the main function to start the application

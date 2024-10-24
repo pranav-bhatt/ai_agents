@@ -105,9 +105,8 @@ def StartCrewInitialization(configuration: Initialize):
 
 
 
-def StartCrewInteration(configuration: Initialize):
+def StartCrewInteraction(configuration: Initialize):
     manager_agents = ManagerAgents(configuration=configuration)
-    swagger_splitter_agents = SwaggerSplitterAgents(configuration=configuration)
     agents = Agents(configuration=configuration)
 
 

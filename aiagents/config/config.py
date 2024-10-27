@@ -45,11 +45,13 @@ class Initialize:
         self.first_run = pn.Param.param
 
         self.sidebar: pn.Column = None
+        self.metadata_summarization_status = pn.widgets.TextInput(value="")
         self.chat_interface: pn.chat.ChatInterface = None
         self.spinner: pn.indicators.LoadingSpinner = None
         self.reload_button: pn.widgets.Button = None
 
-        self.customCallbacks = []
+        self.customInteractionCallbacks = []
+        self.customInitializationCallbacks = []
         self.diagram_path = f"{self.project_root}/assets/images"
         self.active_diagram = pn.widgets.TextInput(
             value=f"{self.diagram_path}/{self.diagrams['full']}"

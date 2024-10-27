@@ -55,7 +55,7 @@ class Agents:
         #         api_caller,
         #     ],
         #     llm=configuration.llm,
-        #     callbacks=configuration.customCallbacks,
+        #     callbacks=configuration.customInteractionCallbacks,
         # )
 
         self.human_input_agent = Agent(
@@ -79,7 +79,7 @@ class Agents:
             verbose=True,
             tools=[get_human_input],
             llm=configuration.llm,
-            callbacks=configuration.customCallbacks,
+            callbacks=configuration.customInteractionCallbacks,
         )
 
         self.validator_agent = Agent(
@@ -105,5 +105,5 @@ class Agents:
             verbose=True,
             allow_delegation=False,
             llm=configuration.llm,
-            callbacks=configuration.customCallbacks,
+            callbacks=configuration.customInteractionCallbacks,
         )

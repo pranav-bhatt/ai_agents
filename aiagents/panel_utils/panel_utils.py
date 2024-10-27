@@ -172,3 +172,31 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
         time.sleep(1)
         configuration.spinner.value = True
         configuration.spinner.visible = True
+
+
+class CustomPanelSidebarHandler(pn.chat.langchain.PanelCallbackHandler):
+    def __init__(
+        self,
+        chat_interface: pn.chat.ChatInterface,
+    ) -> None:
+        """Initialize callback handler."""
+        super().__init__(chat_interface)
+        self.chat_interface: pn.chat.ChatInterface = chat_interface
+        self.agent_name: Optional[str] = None
+
+    def on_chain_start(
+        self, serialized: dict[str, Any], inputs: dict[str, Any], *args, **kwargs
+    ):
+        user = serialized["repr"].split("role=")[1].split(",")[0]
+        self.agent_name = user
+        configuration.metadata_summarization_status.value = (
+            f"{user} Agent started execution."
+        )
+        
+
+    def on_chain_end(self, outputs: dict[str, Any], *args, **kwargs):
+        print(dumps(outputs, indent=2))
+        print(self.agent_name)
+        configuration.metadata_summarization_status.value = (
+            f"{self.agent_name} Agent execution completed."
+        )

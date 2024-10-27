@@ -6,8 +6,8 @@ from json import loads, dump
 import time
 from openapi_spec_validator import validate
 from requests import head, exceptions
-from aiagents.crew import StartCrewInteraction
-from aiagents.panel_utils import CustomPanelCallbackHandler
+from aiagents.crew import StartCrewInitialization, StartCrewInteraction
+from aiagents.panel_utils import CustomPanelCallbackHandler, CustomPanelSidebarHandler
 from aiagents.panel_utils.panel_stylesheets import (
     alert_stylesheet,
     button_stylesheet,
@@ -294,6 +294,12 @@ def handle_inputs(event):
     # Reset input values, disable the 'Upload' button, and enable the 'Start Crew' button after upload
     ml_api_input.value = url_input.value = file_input.value = ""
     upload_button.disabled = True
+    configuration.initialization_crew_thread = threads.thread_with_trace(
+        target=StartCrewInitialization, args=(configuration,)
+    )
+    configuration.initialization_crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
+    configuration.initialization_crew_thread.start()
+    configuration.initialization_crew_thread.join()
     start_crew_button.disabled = False
 
 
@@ -397,6 +403,13 @@ configuration.sidebar = pn.Column(
             upload_button,
         ),
         pn.Row(
+            pn.pane.Markdown(
+                configuration.metadata_summarization_status,
+                width=360,
+            ),
+            align=("start", "center"),  # vertical, horizontal
+        ),
+        pn.Row(
             pn.pane.Image(
                 configuration.active_diagram,
                 width=380,
@@ -412,8 +425,12 @@ configuration.sidebar = pn.Column(
 )
 
 # Custom callback handlers for handling events in the chat interface
-configuration.customCallbacks = [
+configuration.customInteractionCallbacks = [
     CustomPanelCallbackHandler(chat_interface=configuration.chat_interface)
+]
+
+configuration.customInitializationCallbacks = [
+    CustomPanelSidebarHandler(chat_interface=configuration.chat_interface)
 ]
 
 

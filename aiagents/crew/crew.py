@@ -89,15 +89,7 @@ def StartCrewInitialization(configuration: Initialize):
         splitterCrew.kickoff()
     
     except Exception as err:
-        configuration.chat_interface.send(
-            pn.pane.Markdown(
-                object=f"Starting Initailization Crew Failed with {err}\n Please Reload the Crew.",
-                styles=configuration.chat_styles
-            ),
-            user="System",
-            respond=False
-        )
-
+        configuration.metadata_summarization_status.value = f"Starting Initailization Crew Failed with {err}\n Please Reload the Crew."
         configuration.spinner.visible=False
         configuration.spinner.value=False
         configuration.reload_button.disabled=False

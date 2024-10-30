@@ -237,7 +237,7 @@ class Tasks:
                     1. Construct the final payload for the API call using the user-provided values for the parameters.
                     2. Display the payload to the user for their review and confirmation before proceeding with the API call.
                 9. Execute the API Call:
-                    1. Use the 'api_caller' tool to trigger the API call with the payload and intelligently handle any errors that occur during the process. 
+                    1. Use the 'api_caller' tool only once to trigger the API call with the payload and intelligently handle any errors that occur during the process. 
                     2. If the issue requires user input or clarification, invoke the 'get human input' tool to ask the user for the relevant information.
                     3. Retry the API call once the issue is resolved with the updated parameters.
                 10. Return Results:

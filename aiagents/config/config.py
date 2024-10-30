@@ -43,6 +43,7 @@ class Initialize:
         self.selected_swagger_file = ""
         self.user_input = None
         self.first_run = pn.Param.param
+        self.new_file_name = ""
 
         self.sidebar: pn.Column = None
         self.metadata_summarization_status = pn.widgets.TextInput(value="")

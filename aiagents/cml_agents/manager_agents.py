@@ -77,6 +77,6 @@ class ManagerAgents:
             tools=[FileReadTool(), generated_directory_lister, api_caller, get_human_input],
             llm=configuration.llm,
             allow_delegation=False,
-            #callbacks=configuration.customInteractionCallbacks,
+            callbacks=configuration.customInteractionCallbacks,
             step_callback=custom_callback
         )

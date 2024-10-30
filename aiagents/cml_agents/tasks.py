@@ -250,7 +250,7 @@ class Tasks:
             ),
             expected_output=dedent(
                 """
-                Once the API call is successful, return the full result to the user using 'get human input' tool. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user using 'get human input' tool.
+                Once the API call is successful, return the exact full result of the 'api caller tool' using 'get human input' tool. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user using 'get human input' tool.
                 """
             ),
             # output_json=managerDecision,

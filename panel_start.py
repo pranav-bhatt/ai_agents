@@ -280,15 +280,15 @@ def handle_inputs(event):
     #         pass
 
     #     # If the directory for Swagger files does not exist, create it
-    #     if not path.exists(configuration.swagger_files_directory):
-    #         makedirs(configuration.swagger_files_directory)
-    #     # Save the uploaded Swagger file in the designated directory
-    #     file_path = path.join(
-    #         configuration.swagger_files_directory, file_input.filename
-    #     )
-    #     file_content = loads(file_input.value.decode())
-    #     with open(file_path, "w") as file:
-    #         dump(file_content, file, indent=4)
+    if not path.exists(configuration.swagger_files_directory):
+        makedirs(configuration.swagger_files_directory)
+    # Save the uploaded Swagger file in the designated directory
+    file_path = path.join(
+        configuration.swagger_files_directory, file_input.filename
+    )
+    file_content = loads(file_input.value.decode())
+    with open(file_path, "w") as file:
+        dump(file_content, file, indent=4)
 
     configuration.update_configuration() # Update the configuration with the new values
     # Reset input values, disable the 'Upload' button, and enable the 'Start Crew' button after upload

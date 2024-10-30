@@ -250,12 +250,7 @@ class Tasks:
             ),
             expected_output=dedent(
                 """
-                The output should be of the structure of the managerDecision class. It has several fields:
-                    - endpoint: The endpoint that the manager agent has decided needs to be used.
-                    - method: The HTTP method that the manager agent has decided needs to be used.
-                    - file: The location of the split metadata file associated with the endpoint..
-                    - query: The original user query verbatim.
-                    - reasoning: The reasoning behind why the manager agent has decided to use this particular endpoint and method .
+                Once the API call is successful, return the full result to the user using 'get human input' tool. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user using 'get human input' tool.
                 """
             ),
             # output_json=managerDecision,

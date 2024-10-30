@@ -299,7 +299,6 @@ def handle_inputs(event):
     )
     configuration.initialization_crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
     configuration.initialization_crew_thread.start()
-    configuration.initialization_crew_thread.join()
     start_crew_button.disabled = False
 
 

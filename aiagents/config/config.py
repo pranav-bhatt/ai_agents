@@ -43,13 +43,16 @@ class Initialize:
         self.selected_swagger_file = ""
         self.user_input = None
         self.first_run = pn.Param.param
+        self.new_file_name = ""
 
         self.sidebar: pn.Column = None
+        self.metadata_summarization_status = pn.widgets.TextInput(value="")
         self.chat_interface: pn.chat.ChatInterface = None
         self.spinner: pn.indicators.LoadingSpinner = None
         self.reload_button: pn.widgets.Button = None
 
-        self.customCallbacks = []
+        self.customInteractionCallbacks = []
+        self.customInitializationCallbacks = []
         self.diagram_path = f"{self.project_root}/assets/images"
         self.active_diagram = pn.widgets.TextInput(
             value=f"{self.diagram_path}/{self.diagrams['full']}"
@@ -64,6 +67,7 @@ class Initialize:
             # "swagger_splitter": f"{self.diagram_path}/swagger_splitter_agent.jpg",
         }
         self.chat_styles={"font-size": "1.2em"}
+        self.initialization_crew_thread: threads.thread_with_trace = None
         self.crew_thread: threads.thread_with_trace = None
 
     def update_configuration(self):

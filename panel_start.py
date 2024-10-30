@@ -6,8 +6,8 @@ from json import loads, dump
 import time
 from openapi_spec_validator import validate
 from requests import head, exceptions
-from aiagents.crew import StartCrewInteraction
-from aiagents.panel_utils import CustomPanelCallbackHandler
+from aiagents.crew import StartCrewInitialization, StartCrewInteraction
+from aiagents.panel_utils import CustomPanelCallbackHandler, CustomPanelSidebarHandler
 from aiagents.panel_utils.panel_stylesheets import (
     alert_stylesheet,
     button_stylesheet,
@@ -236,6 +236,7 @@ file_input.param.watch(validate_swagger_file_input, "value")
 
 # Handle input values and update the environment variables accordingly
 def handle_inputs(event):
+    configuration.metadata_summarization_status.value = f""
     env_file = find_dotenv()
     load_dotenv(env_file)
 
@@ -279,21 +280,28 @@ def handle_inputs(event):
     #     except FileNotFoundError:
     #         pass
 
-    #     # If the directory for Swagger files does not exist, create it
-    #     if not path.exists(configuration.swagger_files_directory):
-    #         makedirs(configuration.swagger_files_directory)
-    #     # Save the uploaded Swagger file in the designated directory
-    #     file_path = path.join(
-    #         configuration.swagger_files_directory, file_input.filename
-    #     )
-    #     file_content = loads(file_input.value.decode())
-    #     with open(file_path, "w") as file:
-    #         dump(file_content, file, indent=4)
+    # If the directory for Swagger files does not exist, create it
+    if not path.exists(configuration.swagger_files_directory):
+        makedirs(configuration.swagger_files_directory)
+    # Save the uploaded Swagger file in the designated directory
+    file_path = path.join(
+        configuration.swagger_files_directory, file_input.filename
+    )
+    file_content = loads(file_input.value.decode())
+    with open(file_path, "w") as file:
+        dump(file_content, file, indent=4)
+
+    configuration.new_file_name = file_input.filename
 
     configuration.update_configuration() # Update the configuration with the new values
     # Reset input values, disable the 'Upload' button, and enable the 'Start Crew' button after upload
     ml_api_input.value = url_input.value = file_input.value = ""
     upload_button.disabled = True
+    configuration.initialization_crew_thread = threads.thread_with_trace(
+        target=StartCrewInitialization, args=(configuration,)
+    )
+    configuration.initialization_crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
+    configuration.initialization_crew_thread.start()
     start_crew_button.disabled = False
 
 
@@ -397,6 +405,13 @@ configuration.sidebar = pn.Column(
             upload_button,
         ),
         pn.Row(
+            pn.pane.Markdown(
+                configuration.metadata_summarization_status,
+                width=360,
+            ),
+            align=("start", "center"),  # vertical, horizontal
+        ),
+        pn.Row(
             pn.pane.Image(
                 configuration.active_diagram,
                 width=380,
@@ -412,8 +427,12 @@ configuration.sidebar = pn.Column(
 )
 
 # Custom callback handlers for handling events in the chat interface
-configuration.customCallbacks = [
+configuration.customInteractionCallbacks = [
     CustomPanelCallbackHandler(chat_interface=configuration.chat_interface)
+]
+
+configuration.customInitializationCallbacks = [
+    CustomPanelSidebarHandler(chat_interface=configuration.chat_interface)
 ]
 
 

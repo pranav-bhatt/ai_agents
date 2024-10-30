@@ -237,7 +237,7 @@ class Tasks:
                     1. Construct the final payload for the API call using the user-provided values for the parameters.
                     2. Display the payload to the user for their review and confirmation before proceeding with the API call.
                 9. Execute the API Call:
-                    1. Use the 'api_caller' tool to trigger the API call with the payload and intelligently handle any errors that occur during the process. 
+                    1. Use the 'api_caller' tool only once to trigger the API call with the payload and intelligently handle any errors that occur during the process. 
                     2. If the issue requires user input or clarification, invoke the 'get human input' tool to ask the user for the relevant information.
                     3. Retry the API call once the issue is resolved with the updated parameters.
                 10. Return Results:
@@ -250,12 +250,7 @@ class Tasks:
             ),
             expected_output=dedent(
                 """
-                The output should be of the structure of the managerDecision class. It has several fields:
-                    - endpoint: The endpoint that the manager agent has decided needs to be used.
-                    - method: The HTTP method that the manager agent has decided needs to be used.
-                    - file: The location of the split metadata file associated with the endpoint..
-                    - query: The original user query verbatim.
-                    - reasoning: The reasoning behind why the manager agent has decided to use this particular endpoint and method .
+                Once the API call is successful, return the exact full result of the 'api caller tool' using 'get human input' tool. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user using 'get human input' tool.
                 """
             ),
             # output_json=managerDecision,

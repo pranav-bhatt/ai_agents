@@ -26,14 +26,14 @@ def StartCrewInitialization(configuration: Initialize):
     ## if generated folder has any entries delete the same.
 
     # """Delete all files and subdirectories inside the specified directory."""
-    if os.path.exists(configuration.generated_folder_path):
-        # Remove the directory and all its contents
-        shutil.rmtree(configuration.generated_folder_path)
-        # Recreate the empty directory
-        os.makedirs(configuration.generated_folder_path)
+    # if os.path.exists(configuration.generated_folder_path):
+    #     # Remove the directory and all its contents
+    #     shutil.rmtree(configuration.generated_folder_path)
+    #     # Recreate the empty directory
+    #     os.makedirs(configuration.generated_folder_path)
 
     for filename in listdir(configuration.swagger_files_directory):
-            if filename.endswith(".json"):
+            if filename == configuration.new_file_name:
                 swagger_parser(
                     filename,
                     configuration.swagger_files_directory,
@@ -87,17 +87,11 @@ def StartCrewInitialization(configuration: Initialize):
     )
     try:
         splitterCrew.kickoff()
+        configuration.metadata_summarization_status.value = f"Metadata Summary for Swagger file {configuration.new_file_name} \
+        generated in {configuration.metadata_summaries_path}"
     
     except Exception as err:
-        configuration.chat_interface.send(
-            pn.pane.Markdown(
-                object=f"Starting Initailization Crew Failed with {err}\n Please Reload the Crew.",
-                styles=configuration.chat_styles
-            ),
-            user="System",
-            respond=False
-        )
-
+        configuration.metadata_summarization_status.value = f"Starting Initailization Crew Failed with {err}\n Please Reload the Crew."
         configuration.spinner.visible=False
         configuration.spinner.value=False
         configuration.reload_button.disabled=False

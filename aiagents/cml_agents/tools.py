@@ -71,6 +71,7 @@ def get_human_input(agent_name: str, agent_question: str) -> str:
     - agent_name: The name of the agent invoking this tool
     - agent_question: The question that the agent will ask the user.
     """
+    print(f"The get human input tool is called with name:{agent_name}\n and \n question{agent_question}\n\n")
     configuration.chat_interface.send(
         value=pn.pane.Markdown(
             object=agent_question,

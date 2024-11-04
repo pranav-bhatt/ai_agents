@@ -241,7 +241,8 @@ class Tasks:
                     2. If the issue requires user input or clarification, invoke the 'get human input' tool to ask the user for the relevant information.
                     3. Retry the API call once the issue is resolved with the updated parameters.
                 10. Return Results:
-                    1. Once the API call is successful, return the full result to the user. 
+                    1. Once the API call is successful, return the full result to the user, and if there is an error, retry the API call for  max of 2 tries with 5 second delays and then return
+                        the error if still the call is not successful.
                     2. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user.
                 11. Completion and Follow-Up:
                     1. After delivering the result of the above api call, after a few newlines in the output, prompt the user with the message: “Please reload the crew if you have any further queries.”

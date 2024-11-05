@@ -103,7 +103,7 @@ class Agents:
                 """
             ),
             verbose=True,
-            allow_delegation=False,
+            allow_delegation=True,
             llm=configuration.llm,
             callbacks=configuration.customInteractionCallbacks,
         )

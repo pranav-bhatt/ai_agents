@@ -216,7 +216,7 @@ class Tasks:
                 2. Select Endpoint and HTTP Method:
                     1. Analyze the metadata to identify the Swagger file that contains the endpoint most suited to the user query.
                     2. Match the user’s query to endpoint descriptions by evaluating the similarity between the user's intent and the function of the endpoint.
-                3. Justify Endpoint Selection:
+                3. Justify Endpoint Selection using Decision Validator Agent:
                     1. Present the selected endpoint and HTTP method to the 'decision validator' agent, explaining how it aligns with the user’s query. 
                     2. Make sure the justification is clear and directly tied to the user’s request.
                 4. Handle Feedback from Validator:
@@ -251,7 +251,7 @@ class Tasks:
             ),
             expected_output=dedent(
                 """
-                Once the API call is successful, return the exact full result of the 'api caller tool' using 'get human input' tool. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user using 'get human input' tool.
+                Once the API call is successful, return the well formatted full result of the 'api caller tool' using 'get human input' tool. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user using 'get human input' tool.
                 """
             ),
             # output_json=managerDecision,

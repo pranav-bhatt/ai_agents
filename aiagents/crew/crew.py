@@ -161,6 +161,8 @@ def StartCrewInteraction(configuration: Initialize):
 
     try:
         splitterCrew.kickoff()
+        configuration.spinner.value = False
+        configuration.spinner.visible = False
     
     except Exception as err:
         configuration.chat_interface.send(

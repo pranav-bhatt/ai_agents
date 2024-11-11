@@ -1,3 +1,4 @@
+import json
 import time
 from typing import Optional, Any, Union, List
 from json import dumps
@@ -80,9 +81,12 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
 
     def on_chain_end(self, outputs: dict[str, Any], *args, **kwargs):
         print(dumps(outputs, indent=2))
+        output_data = json.loads(outputs['output'].split('```json\n')[1].split('\n```')[0]) \
+            if "```json" in outputs["output"] else {}
         print(self.agent_name)
-        # if 'role' in outputs["output"]:
-        #     print(outputs["output"]["role"])
+        if 'role' in output_data:
+            print(output_data["role"])
+            self.agent_name = output_data["role"]
         if "this output contains the appropriate swagger metadata file to use for the task at hand" in outputs["output"].lower():
             configuration.selected_swagger_file = search(
                 r'"file_name":\s*"([^"]+)"', outputs["output"]
@@ -97,7 +101,7 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
         else:
             self.send_event(
                 "Task outcome",
-                outputs["output"],
+                str(output_data["answer"]) if "answer" in output_data else outputs["output"],
                 self.agent_name,
             )
         if "reload the crew" in outputs["output"].lower():

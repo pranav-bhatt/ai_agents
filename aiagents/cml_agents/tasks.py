@@ -92,19 +92,32 @@ class Tasks:
         #     # context=[self.splitter_task],
         # )
 
+        class humanInputOutput(BaseModel):
+            """
+            This class is used to store the decision made by the task matcher agent. It has several fields:
+            - answer: A clear answer stating the user action EXACTLY as they have mentioned within quotes
+            - role: The role of the agent executing the task
+            """
+
+            answer: str
+            role: str
+
         self.initial_human_input_task = Task(
             description=dedent(
                 """
-                Ask the human what action they would like to perform using the swaggers they have provided.
+                Ask the human what action they would like to perform using the swaggers they have provided and 
+                format the result in the exact structure required by the 'taskMatcherDecision' class.
                 """
             ),
             expected_output=dedent(
                 f"""
-                A clear answer stating the user action EXACTLY as they have mentioned within quotes, 
-                and please don't change or miss a single word they have provided. 
-                Also, always send the {agents['human_input_agent'].role} in the output
+                The output should be of the structure of the taskMatcherDecision class. It has several fields:
+                    - answer: A clear answer stating the user action EXACTLY as they have mentioned within quotes, 
+                        and please don't change or miss a single word they have provided. 
+                    - role: The value of {agents['human_input_agent'].role}
                 """
             ),
+            output_json=humanInputOutput,
             agent=agents["human_input_agent"],
             #context=[self.metadata_summarizer_task],
         )
@@ -169,6 +182,16 @@ class Tasks:
             context=[ self.initial_human_input_task],
         )
 
+        class decisionValidatorOutput(BaseModel):
+            """
+            This class is used to store the decision validation done by the decision validator agent. It has two fields:
+            - answer: The conclusion and reasoning as to whether or not the action of the agent will result in the original query posed to the agent to be addressed
+            - role: The role of the agent executing the task
+            """
+
+            answer: str
+            role: str
+
         self.validator_task = Task(
             description=dedent(
                 """
@@ -182,15 +205,18 @@ class Tasks:
                 4. Provide a Conclusion:
                     1. Clearly state whether the agent's proposed solution will result in successful task completion.
                     2. Justify your conclusion with a concise explanation, detailing why the actions are or are not aligned with the original query.
-                    3. Communicate your decision to the calling agent so it can proceed with the rest of its tasks accordingly.
+                    3. Communicate your decision to the calling agent so it can proceed with the rest of its tasks accordingly by formatting the result in the exact structure required by the 'decisionValidatorOutput' class.
                 """
             ),
             expected_output=dedent(
                 f"""
-                Output the conclusion and reasoning as to whether or not the action of the agent will result in the 
-                original query posed to the agent to be addressed. Also, always send the {agents['validator_agent'].role} in the output
+                The output should be of the structure of the decisionValidatorOutput class. 
+                It has several fields:
+                    - answer: The conclusion and reasoning as to whether or not the action of the agent will result in the original query posed to the agent to be addressed
+                    - role: The value of {agents['validator_agent'].role}
                 """
             ),
+            output_json=decisionValidatorOutput,
             agent=agents["validator_agent"],
             #context=[self.metadata_summarizer_task],
         )
@@ -210,6 +236,16 @@ class Tasks:
         #     file: str
         #     user_query: str
         #     reasoning: str
+
+        class managerOutput(BaseModel):
+            """
+            This class is used to store the decision made by the task matcher agent. It has several fields:
+            - answer: The exact full result of the 'api caller tool', summarized and formatted clearly and concisely
+            - role: The role of the agent executing the task
+            """
+
+            answer: str
+            role: str
 
         self.manager_task = Task(
             description=dedent(
@@ -247,22 +283,25 @@ class Tasks:
                     and update the 'API_ENDPOINT' or 'API_BEARER_TOKEN' respectively using the 'update env variables' tool.
                     4. Retry the API call once the issue is resolved with the updated parameters using the 'api_caller' tool.
                 10. Return Results:
-                    1. Once the API call is successful, return the full result to the user, and if there is an error, retry the API call for  max of 2 tries with 5 second delays and then return
+                    1. Once the API call is successful, return the full result to the user by formatting the result in the exact structure required by the 'managerOutput' class, and if there is an error, retry the API call for  max of 2 tries with 5 second delays and then return
                         the error if still the call is not successful.
                     2. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user.
                 11. Completion and Follow-Up:
-                    1. After delivering the result of the above api call, after a few newlines in the output, prompt the user with the message: “Please reload the crew if you have any further queries.”
+                    1. After delivering the result of the above api call, use the 'get_human_input' tool to prompt the user with the message: “Please reload the crew if you have any further queries.”
                     2. Conclude the task unless further actions are required.
                 """
             ),
             expected_output=dedent(
                 f"""
-                Once the API call is successful, return the exact full result of the 'api caller tool' using 'get human input' tool. 
-                If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is 
-                sent to the user using 'get human input' tool. Also, always send {agents['manager_agent'].role} in the output
+                The output should be of the structure of the managerOutput class. 
+                It has several fields:
+                    - answer: Once the API call is successful, return the exact full result of the 'api caller tool'. If the result is complex, 
+                        summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user.
+                    - role: The value of {agents['manager_agent'].role}
                 """
             ),
             # output_json=managerDecision,
+            output_json=managerOutput,
             context=[
                 self.task_matching_task,
                 self.initial_human_input_task,

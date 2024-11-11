@@ -3,6 +3,7 @@ from textwrap import dedent
 from crewai import Agent
 from crewai_tools import FileReadTool, DirectoryReadTool
 
+from aiagents.cml_agents.callback_utils import custom_agent_callback
 from aiagents.config import Initialize
 from .tools import get_human_input, api_caller
 
@@ -80,6 +81,8 @@ class Agents:
             tools=[get_human_input],
             llm=configuration.llm,
             callbacks=configuration.customInteractionCallbacks,
+            step_callback=custom_agent_callback,
+            step_kwargs={"agent": "Human Input Agent"}
         )
 
         self.validator_agent = Agent(
@@ -106,4 +109,6 @@ class Agents:
             allow_delegation=True,
             llm=configuration.llm,
             callbacks=configuration.customInteractionCallbacks,
+            step_callback=custom_agent_callback,
+            step_kwargs={"agent": "Decision Validator Agent"}
         )

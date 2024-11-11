@@ -81,6 +81,8 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
     def on_chain_end(self, outputs: dict[str, Any], *args, **kwargs):
         print(dumps(outputs, indent=2))
         print(self.agent_name)
+        # if 'role' in outputs["output"]:
+        #     print(outputs["output"]["role"])
         if "this output contains the appropriate swagger metadata file to use for the task at hand" in outputs["output"].lower():
             configuration.selected_swagger_file = search(
                 r'"file_name":\s*"([^"]+)"', outputs["output"]

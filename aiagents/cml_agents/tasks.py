@@ -99,9 +99,10 @@ class Tasks:
                 """
             ),
             expected_output=dedent(
-                """
+                f"""
                 A clear answer stating the user action EXACTLY as they have mentioned within quotes, 
-                and please don't change or miss a single word they have provided.
+                and please don't change or miss a single word they have provided. 
+                Also, always send the {agents['human_input_agent'].role} in the output
                 """
             ),
             agent=agents["human_input_agent"],
@@ -116,6 +117,7 @@ class Tasks:
             - task: The task at hand for which the swagger file was chosen.
             - reason: The reasoning behind why the task matcher agent has decided to use this particular swagger metadata file.
             - description: The description of this class used to identify the output
+            - role: The role of the agent executing the task
             """
 
             file_name: str
@@ -123,6 +125,7 @@ class Tasks:
             task: str
             reason: str
             description: str = Field("This output contains the appropriate swagger metadata file to use for the task at hand", frozen=True)
+            role: str
 
             @field_validator('description')
             def set_fixed_method(cls, v):
@@ -151,7 +154,7 @@ class Tasks:
                 """
             ),
             expected_output="A concise answer stating the exact location of the appropriate swagger metadata file, "
-            """as well as the reason why it is the one that has been chosen. The output should be of the structure 
+            f"""as well as the reason why it is the one that has been chosen. The output should be of the structure 
             of the taskMatcherDecision class. It has several fields:
                 - file_name: The file name of the appropriate swagger metadata file chosen.
                 - file_location: The path or location of the appropriate swagger metadata file chosen.
@@ -159,6 +162,7 @@ class Tasks:
                 - reason: The reasoning behind why the task matcher agent has decided to use this particular swagger metadata file.
                 - description: The description of this class which will be used to identify the output = 'This output contains 
                 the appropriate swagger metadata file to use for the task at hand'
+                - role: The value of {agents['task_matching_agent'].role}
             """,
             output_json=taskMatcherDecision,
             agent=agents["task_matching_agent"],
@@ -182,9 +186,9 @@ class Tasks:
                 """
             ),
             expected_output=dedent(
-                """
+                f"""
                 Output the conclusion and reasoning as to whether or not the action of the agent will result in the 
-                original query posed to the agent to be addressed
+                original query posed to the agent to be addressed. Also, always send the {agents['validator_agent'].role} in the output
                 """
             ),
             agent=agents["validator_agent"],
@@ -239,7 +243,9 @@ class Tasks:
                 9. Execute the API Call:
                     1. Use the 'api_caller' tool only once to trigger the API call with the payload and intelligently handle any errors that occur during the process. 
                     2. If the issue requires user input or clarification, invoke the 'get human input' tool to ask the user for the relevant information.
-                    3. Retry the API call once the issue is resolved with the updated parameters.
+                    3. If the API Endpoint or API Bearer Token are found to be incorrect, fetch their correct values from the user using the 'get human input' tool, 
+                    and update the 'API_ENDPOINT' or 'API_BEARER_TOKEN' respectively using the 'update env variables' tool.
+                    4. Retry the API call once the issue is resolved with the updated parameters using the 'api_caller' tool.
                 10. Return Results:
                     1. Once the API call is successful, return the full result to the user, and if there is an error, retry the API call for  max of 2 tries with 5 second delays and then return
                         the error if still the call is not successful.
@@ -250,8 +256,10 @@ class Tasks:
                 """
             ),
             expected_output=dedent(
-                """
-                Once the API call is successful, return the well formatted full result of the 'api caller tool' using 'get human input' tool. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user using 'get human input' tool.
+                f"""
+                Once the API call is successful, return the exact full result of the 'api caller tool' using 'get human input' tool. 
+                If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is 
+                sent to the user using 'get human input' tool. Also, always send {agents['manager_agent'].role} in the output
                 """
             ),
             # output_json=managerDecision,

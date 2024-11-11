@@ -14,13 +14,14 @@ class Initialize:
     diagrams = {
         "full": "0_fulll.jpg",
         "Human Input Agent": "1_human_inputt.jpg",
+        "get_human_input": "get_human_input.jpg",
         "Task Matcher": "2_task_matcherr.jpg",
         # "Swagger API Description Summarizer": "3_metadata_summariser.jpg",
         # "swagger_splitter": "4_swagger_splitter.jpg",
         "API Selector Agent": "3_api_selectorr.jpg",
         "Decision Validator Agent": "4_decision_validatorr.jpg",
         # "API Caller Agent": "7_api_caller.jpg",
-        "API Calling Tool": "api_tool.jpg",
+        "api_caller": "api_tool.jpg",
     }
 
     def __init__(self):
@@ -43,6 +44,7 @@ class Initialize:
         self.selected_swagger_file = ""
         self.user_input = None
         self.first_run = pn.Param.param
+        self.current_agent = "" 
         self.new_file_name = ""
 
         self.sidebar: pn.Column = None

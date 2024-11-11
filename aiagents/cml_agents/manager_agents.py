@@ -2,12 +2,13 @@ from textwrap import dedent
 from os import environ
 from crewai import Agent
 from crewai_tools import FileReadTool
-from .callback_utils import custom_callback
+from .callback_utils import custom_agent_callback
 from .tools import (
     generated_directory_lister,
     metadata_summary_fetcher,
     get_human_input,
-    api_caller
+    api_caller,
+    update_env_variables
 )
 
 
@@ -31,7 +32,8 @@ class ManagerAgents:
             tools=[metadata_summary_fetcher, get_human_input],
             llm=configuration.llm,
             callbacks=configuration.customInteractionCallbacks,
-            step_callback=custom_callback
+            step_callback=custom_agent_callback,
+            step_kwargs={"agent": "Task Matcher"}
         )
 
         self.manager_agent = Agent(
@@ -74,9 +76,10 @@ class ManagerAgents:
                 """
             ),
             verbose=True,
-            tools=[FileReadTool(), generated_directory_lister, api_caller, get_human_input],
+            tools=[FileReadTool(), generated_directory_lister, api_caller, get_human_input, update_env_variables],
             llm=configuration.llm,
             allow_delegation=True,
             callbacks=configuration.customInteractionCallbacks,
-            step_callback=custom_callback
+            step_callback=custom_agent_callback,
+            # step_kwargs={"agent": "API Selector Agent"}
         )

@@ -1,6 +1,7 @@
+from ast import literal_eval
 from os import makedirs, listdir, environ
 from os.path import join, exists
-from dotenv import load_dotenv, find_dotenv
+from dotenv import get_key, load_dotenv, find_dotenv, set_key
 from textwrap import dedent
 from json import dump, loads
 from requests import get, post, patch, delete
@@ -72,6 +73,9 @@ def get_human_input(agent_name: str, agent_question: str) -> str:
     - agent_question: The question that the agent will ask the user.
     """
     print(f"The get human input tool is called with name:{agent_name}\n and \n question{agent_question}\n\n")
+    configuration.active_diagram.value = (
+        f"{configuration.diagram_path}/{configuration.diagrams["get_human_input"]}"
+    )
     configuration.chat_interface.send(
         value=pn.pane.Markdown(
             object=agent_question,
@@ -94,6 +98,37 @@ def get_human_input(agent_name: str, agent_question: str) -> str:
     configuration.spinner.visible = True
     return human_comments
 
+
+@tool("update_env_variables")
+def update_env_variables(*, API_ENDPOINT: str = None, API_BEARER_TOKEN: str = None):
+    """
+    This function will update the API Endpoint or API Bearer Token in the environment variables. It has 2 parameter it accepts:
+    - API_ENDPOINT: The API Endpoint (Optional) to be updated in case of faulty API Endpoint in the .env file
+    - API_BEARER_TOKEN: The API Endpoint (Optional) to be updated in case of faulty API Endpoint in the .env file
+    """
+    print("values received", API_BEARER_TOKEN, "\n", API_ENDPOINT)
+    env_file = find_dotenv()
+    load_dotenv(env_file)
+
+    if API_ENDPOINT:
+        # Update API endpoint in the .env file
+        api_endpoint = (
+            literal_eval(get_key(env_file, "API_ENDPOINT"))
+            if get_key(env_file, "API_ENDPOINT")
+            else {}
+        )
+        api_endpoint[configuration.selected_swagger_file] = API_ENDPOINT
+        set_key(env_file, "API_ENDPOINT", api_endpoint, quote_mode="never")
+
+    if API_BEARER_TOKEN:
+        # Update API bearer token in the .env file
+        api_bearer_token = (
+            literal_eval(get_key(env_file, "API_BEARER_TOKEN"))
+            if get_key(env_file, "API_BEARER_TOKEN")
+            else {}
+        )
+        api_bearer_token[configuration.selected_swagger_file] = API_BEARER_TOKEN
+        set_key(env_file, "API_BEARER_TOKEN", api_bearer_token, quote_mode="never")
 
 # class SwaggerSplitter(BaseTool):
 #     """
@@ -229,7 +264,11 @@ class APICaller(BaseTool):
     def __init__(self):
         super().__init__()
 
-    def _run(self, path: str, method: str, parameters: Dict[str, str] = {}, **kwargs):
+    def _run(self, path: str, method: str, parameters: Dict[str, str] = {}, *args, **kwargs):
+        configuration.active_diagram.value = (
+            f"{configuration.diagram_path}/{configuration.diagrams["api_caller"]}"
+        )
+        print("The parameters received are:", path, "\n", method, "\n", parameters, "\n", args, "\n", kwargs)
         load_dotenv(find_dotenv(), override=True)
         base_url = kwargs.get("API_ENDPOINT") if "API_ENDPOINT" in kwargs else \
         loads(environ.get("API_ENDPOINT").replace("'", '"'))[configuration.selected_swagger_file]

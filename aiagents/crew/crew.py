@@ -9,7 +9,7 @@ from aiagents.cml_agents.manager_agents import ManagerAgents
 from aiagents.cml_agents.swagger_splitter import SwaggerSplitterAgents
 from aiagents.cml_agents.agents import Agents
 from aiagents.cml_agents.parse_for_manager import swagger_parser
-from aiagents.cml_agents.callback_utils import custom_callback
+from aiagents.cml_agents.callback_utils import custom_callback, custom_initialization_callback
 from aiagents.cml_agents.tasks import Tasks, TasksInitialize
 
 from aiagents.config import Initialize
@@ -83,7 +83,7 @@ def StartCrewInitialization(configuration: Initialize):
         verbose=1,
         memory=False,
         embedder=embedding,
-        task_callback=custom_callback
+        task_callback=custom_initialization_callback
     )
     try:
         splitterCrew.kickoff()

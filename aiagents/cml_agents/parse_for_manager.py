@@ -21,8 +21,11 @@ def read_swagger_file(swagger_file_location):
     :return: Parsed Swagger data as a Python dictionary
     """
     if swagger_file_location.endswith('.json'):
-        with open(swagger_file_location, 'r') as file:
-            return json.load(file)
+        try:
+            with open(swagger_file_location, 'r') as file:
+                return jsonref.load(file, lazy_load=False, proxies=False, merge_props=True)
+        except (IOError, jsonref.JsonRefError) as e:
+            print(f"Error loading Swagger file: {e}")
     elif swagger_file_location.endswith('.yaml') or swagger_file_location.endswith('.yml'):
         with open(swagger_file_location, 'r') as file:
             return yaml.safe_load(file)

@@ -55,11 +55,11 @@ class ManagerAgents:
                 If the user doesn't have some information on hand, or they ask you a question, make sure to fetch the appropriate 
                 information, provide it to the user so they can tell you what information they need.
                 
-                Once the user has confirmed all the details, make the API call and return the results. If you run into errors
-                while making the API call, make sure to try and deal with the error to the best of your abilities. Even after 3 retries, if you still
-                get error, return the error message back to the user. If you determine that user inputs are needed to complete the call, 
+                Once the user has confirmed all the details, make the API call using api-caller-tool and return the results. If you run into errors
+                while making the API call, make sure to try and deal with the error to the best of your abilities. If you determine that user inputs are needed to complete the call, 
                 provide the error message back to the user, and ask for clarification about the same. Once the user has provided all the 
-                required information, make the call again.
+                required information, make the api call again using api-caller-tool with updated parameters and token/apikey if provided and not the old ones. Even after 3 retries, if you still
+                get error, return the error message back to the user.
 
                 After successfully making the API call, return the results to the user. Post this, ask 
                 the user using the 'get human input' tool to reload the crew if they have any further queries, and end the execution.

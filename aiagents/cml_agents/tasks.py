@@ -277,11 +277,12 @@ class Tasks:
                     1. Construct the final payload for the API call using the user-provided values for the parameters.
                     2. Display the payload to the user for their review and confirmation before proceeding with the API call.
                 9. Execute the API Call:
-                    1. Use the 'api_caller' tool only once to trigger the API call with the payload and intelligently handle any errors that occur during the process. 
+                    1. Use the 'api-caller' tool to trigger the API call with the payload and intelligently handle any errors that occur during the process. 
                     2. If the issue requires user input or clarification, invoke the 'get human input' tool to ask the user for the relevant information.
                     3. If the API Endpoint or API Bearer Token are found to be incorrect, fetch their correct values from the user using the 'get human input' tool, 
                     and update the 'API_ENDPOINT' or 'API_BEARER_TOKEN' respectively using the 'update env variables' tool.
-                    4. Retry the API call once the issue is resolved with the updated parameters using the 'api_caller' tool.
+                    4. Using the 'api-caller' tool retry the API call with the updated parameters and updated token/key. Even after 3 retries, if you still
+                    get error, return the error message back to the user.
                 10. Return Results:
                     1. Once the API call is successful, return the full result to the user by formatting the result in the exact structure required by the 'managerOutput' class, and if there is an error, retry the API call for  max of 2 tries with 5 second delays and then return
                         the error if still the call is not successful.

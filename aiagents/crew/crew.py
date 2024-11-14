@@ -161,6 +161,10 @@ def StartCrewInteraction(configuration: Initialize):
 
     try:
         splitterCrew.kickoff()
+        configuration.chat_interface.send(
+            "If you have any other queries or need further assistance, please Reload the Crew.", 
+            user="System", 
+            respond=False)
         configuration.spinner.value = False
         configuration.spinner.visible = False
     

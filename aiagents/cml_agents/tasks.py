@@ -287,9 +287,6 @@ class Tasks:
                     1. Once the API call is successful, return the full result to the user by formatting the result in the exact structure required by the 'managerOutput' class, and if there is an error, retry the API call for  max of 2 tries with 5 second delays and then return
                         the error if still the call is not successful.
                     2. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user.
-                11. Completion and Follow-Up:
-                    1. After delivering the result of the above api call, use the 'get_human_input' tool to prompt the user with the message: “Please reload the crew if you have any further queries.”
-                    2. Conclude the task unless further actions are required.
                 """
             ),
             expected_output=dedent(

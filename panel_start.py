@@ -34,7 +34,7 @@ pn.extension(design="material")
 
 # Environment variables to be stored in the .env file
 env_vars = {
-    "LLM_TEMPERATURE": "0.5",
+    "LLM_TEMPERATURE": "0",
     "OPENAI_API_VERSION": "2024-02-01",
     "OPENAI_EMBEDDING_MODEL": "text-embedding-ada-002",
 }
@@ -236,6 +236,7 @@ file_input.param.watch(validate_swagger_file_input, "value")
 
 # Handle input values and update the environment variables accordingly
 def handle_inputs(event):
+    azure_details.collapsed=True
     configuration.metadata_summarization_status.value = f""
     env_file = find_dotenv()
     load_dotenv(env_file)

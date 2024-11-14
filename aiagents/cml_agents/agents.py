@@ -90,7 +90,7 @@ class Agents:
             goal=dedent(
                 """
                 Observe the original query passed to the agent that called you for your validation and understand its nuances. 
-                Validate the answer of the agent that has asked your validation and understand the exact outcome that will be produced
+                Validate the answer of the agent that has asked your validation strictly and understand the exact outcome that will be produced.
                 You should be able to deduce whether or not the agent's actions will result in the satisfactory completion of the original query 
                 You should also be able to state your conclusion explicitly and provide explanation on why you reached that conclusion 
                 in a succinct manner.

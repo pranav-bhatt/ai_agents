@@ -1,9 +1,14 @@
 import json
+import re
 import time
 from typing import Optional, Any, Union, List
 from json import dumps
 from re import search
+from os import environ
 
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
+from langchain.prompts import PromptTemplate
+from langchain.schema import HumanMessage
 import panel as pn
 
 from aiagents.config import configuration
@@ -11,6 +16,27 @@ from aiagents.panel_utils.panel_stylesheets import card_stylesheet
 
 avatars = {}
 
+
+def output_formatter(output: str) -> dict:
+    human_prompt = f"""
+    As a good observer, find and fetch me the value of "role" from:
+    {output}
+    Have no prefix or suffix, just return the value, don't act extra smart. 
+    Don't panic or think too much if you can't find it, just return an empty string ("").
+    There are only these many roles possible: 
+        1. "Human Input Agent"
+        2. "API Selector Agent"
+        3. "Decision Validator Agent"
+        4. "API Caller Agent"
+        5. "Task Matcher"
+    So don't try to generate whimsical roles on your own, just send empty string when in doubt
+    """
+    llm = AzureChatOpenAI(azure_deployment=environ.get(
+        "AZURE_OPENAI_DEPLOYMENT", "cml"
+    )) if configuration.openai_provider == "AZURE_OPENAI" else ChatOpenAI()
+    message = HumanMessage(content=human_prompt)
+    response = llm(messages=[message]).content
+    return response
 
 class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
     """Callback Handler that prints to std out."""
@@ -81,12 +107,10 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
 
     def on_chain_end(self, outputs: dict[str, Any], *args, **kwargs):
         print(dumps(outputs, indent=2))
-        output_data = json.loads(outputs['output'].split('```json\n')[1].split('\n```')[0]) \
-            if "```json" in outputs["output"] else {}
-        print(self.agent_name)
-        if 'role' in output_data:
-            print(output_data["role"])
-            self.agent_name = output_data["role"]
+        role = output_formatter(outputs["output"])
+        print("role:", role)
+        if role and "Agent" in role:
+            self.agent_name = role
         if "this output contains the appropriate swagger metadata file to use for the task at hand" in outputs["output"].lower():
             configuration.selected_swagger_file = search(
                 r'"file_name":\s*"([^"]+)"', outputs["output"]
@@ -101,7 +125,7 @@ class CustomPanelCallbackHandler(pn.chat.langchain.PanelCallbackHandler):
         else:
             self.send_event(
                 "Task outcome",
-                str(output_data["answer"]) if "answer" in output_data else outputs["output"],
+                outputs["output"],
                 self.agent_name,
             )
         if "reload the crew" in outputs["output"].lower():

@@ -61,8 +61,7 @@ class ManagerAgents:
                 required information, make the api call again using api-caller-tool with updated parameters and token/apikey if provided and not the old ones. Even after 3 retries, if you still
                 get error, return the error message back to the user.
 
-                After successfully making the API call, return the results to the user. Post this, ask 
-                the user using the 'get human input' tool to reload the crew if they have any further queries, and end the execution.
+                After successfully making the API call, return the results to the user.
                 """
             ),
             backstory=dedent(

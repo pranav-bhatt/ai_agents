@@ -87,9 +87,7 @@ def StartCrewInitialization(configuration: Initialize):
     )
     try:
         splitterCrew.kickoff()
-        configuration.metadata_summarization_status.value = f"Metadata Summary for Swagger file {configuration.new_file_name} \
-        generated in {configuration.metadata_summaries_path}"
-    
+        configuration.metadata_summarization_status.value = "Processed the API Spec File"
     except Exception as err:
         configuration.metadata_summarization_status.value = f"Starting Initailization Crew Failed with {err}\n Please Reload the Crew."
         configuration.spinner.visible=False

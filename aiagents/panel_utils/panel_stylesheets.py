@@ -28,13 +28,13 @@ radio_button_stylesheet = """
     :host(.outline)
     .bk-btn.bk-btn-default.bk-active {
         box-shadow: inset 0px 3px 2px rgb(0 0 0 / 25%);
-        font-weight: 400;
-        font-size: 0.8rem;
+        font-weight: 500;
+        font-size: 0.75rem;
         padding: 0.5rem 1rem;
     }
     :host(.outline) .bk-btn.bk-btn-default {
-        font-weight: 400;
-        font-size: 0.8rem;
+        font-weight: 500;
+        font-size: 0.75rem;
         padding: 0.5rem 1rem;
     }
 """

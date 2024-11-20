@@ -149,15 +149,15 @@ def check_input_value(*events):
 
 # Label and input for selecting the OpenAI provider.
 openai_provider_label = pn.widgets.StaticText(
-    value="OpenAI Provider", styles={"padding": "0 10px"}, width=370
+    value="OpenAI Provider", styles={"padding": "8px 10px", "font-size": "13.5px", "font-weight": "500"}, width=125
 )
 openai_provider_input = pn.widgets.RadioButtonGroup(
     name="OpenAI Provider",
-    options=["AZURE_OPENAI", "OPENAI"],
+    options=["OPENAI", "AZURE_OPENAI"],
     styles=input_button_styles,
     stylesheets=[radio_button_stylesheet],
     button_style="outline",
-    width=370,
+    width=180,
 )
 
 
@@ -176,36 +176,74 @@ azure_embedding_input = pn.widgets.TextInput(
 )
 
 # Card to contain Azure-specific inputs.
-azure_details = pn.Card(azure_deployment_input,
+# Azure details container
+azure_details = pn.Column(
+    azure_deployment_input,
     azure_endpoint_input,
     azure_embedding_input,
+    visible=False
+)
+
+# OpenAI key input
+key_input = pn.widgets.PasswordInput(
+    name="OpenAI Key 6b5aeacf1b9c474fa484db1edf46ee33",
+    placeholder="",
+    width=360,
+    styles={"font-size": "50px"},
+    stylesheets=[input_stylesheet]
+)
+
+# Main configuration card
+configuration_details = pn.Card(
+    key_input,  # Start with just the key input
     width=380,
-    title="Azure OpenAI Details",
+    title="Model Configuration Details",
     collapsed=True,
     styles={"background": "#eaf3f3"},
     header_background="#cee3e3",
     active_header_background="#cee3e3",
-    header="<html><h4 style='margin:0.25rem; font-size:0.82rem'>Azure OpenAI Details</h4></html>",
-    visible=True if openai_provider_input.value == "AZURE_OPENAI" else False,
+    header="<html><h4 style='margin:0.25rem; font-size:0.82rem'>Model Configuration Details</h4></html>"
 )
 
-# Inputs for OpenAI key, API endpoint, API bearer token, and Swagger file.
-key_input = pn.widgets.PasswordInput(
-    name="OpenAI Key     6b5aeacf1b9c474fa484db1edf46ee33", placeholder="", styles={"font-size": "50px"}, width=370, stylesheets=[input_stylesheet]
-)
+def update_card_contents():
+    """Updates the card contents based on the provider selection"""
+    is_azure = openai_provider_input.value == "AZURE_OPENAI"
+    
+    if is_azure and not configuration_details.collapsed:
+        # Show both Azure details and key input for Azure when expanded
+        configuration_details.objects = [azure_details, key_input]
+        azure_details.visible = True
+    else:
+        # Show only key input for OpenAI or when collapsed
+        configuration_details.objects = [key_input]
+        azure_details.visible = False
+
+def update_visibility(event=None):
+    """Updates visibility of components based on the provider input value."""
+    update_card_contents()
+
+def on_expand(event):
+    """Handle card expansion/collapse events"""
+    update_card_contents()
+
+# Set up event watchers
+openai_provider_input.param.watch(update_visibility, "value")
+configuration_details.param.watch(on_expand, "collapsed")
+
+
 url_input = pn.widgets.TextInput(
-    name="API Endpoint", placeholder="", styles={"font-size": "50px"}, width=370, stylesheets=[input_stylesheet]
+    name="API Endpoint", placeholder="", styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet]
 )
 ml_api_input = pn.widgets.PasswordInput(
-    name="API Bearer Token", placeholder="", styles={"font-size": "50px"}, width=370, stylesheets=[input_stylesheet]
+    name="API Bearer Token", placeholder="", styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet]
 )
-file_input = pn.widgets.FileInput(accept=".json", multiple=False, width=370, stylesheets=[input_stylesheet])
+file_input = pn.widgets.FileInput(accept=".json", multiple=False, width=360, stylesheets=[input_stylesheet])
 
 # Alert for invalid Swagger file
 swagger_alert = pn.pane.Alert(
     "!!The Swagger file uploaded is invalid. Please upload a valid file",
     alert_type="danger",
-    width=370,
+    width=360,
     stylesheets=[alert_stylesheet],
     css_classes=["alert"],
 )
@@ -215,7 +253,7 @@ swagger_alert.visible = False
 endpoint_alert = pn.pane.Alert(
     "!!The API Endpoint provided is Invalid. Please retry with a valid endpoint or check your network configurations.",
     alert_type="danger",
-    width=370,
+    width=360,
     stylesheets=[alert_stylesheet],
     css_classes=["alert"],
 )
@@ -236,7 +274,7 @@ file_input.param.watch(validate_swagger_file_input, "value")
 
 # Handle input values and update the environment variables accordingly
 def handle_inputs(event):
-    azure_details.collapsed=True
+    configuration_details.collapsed=True
     configuration.metadata_summarization_status.value = f""
     env_file = find_dotenv()
     load_dotenv(env_file)
@@ -304,7 +342,7 @@ def handle_inputs(event):
     configuration.initialization_crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
     configuration.initialization_crew_thread.start()
     start_crew_button.disabled = False
-
+ 
 
 # Upload button widget configuration and event handling
 upload_button = pn.widgets.Button(
@@ -379,13 +417,10 @@ configuration.reload_button.on_click(reload_post_callback)
 configuration.sidebar = pn.Column(
     pn.Card(
         pn.Row(
-            pn.Column(openai_provider_label, openai_provider_input),
+            pn.Row(openai_provider_label, openai_provider_input),
         ),
         pn.Row(
-            azure_details,
-        ),
-        pn.Row(
-            key_input,
+            configuration_details,
         ),
         pn.Row(
             url_input,
@@ -409,6 +444,7 @@ configuration.sidebar = pn.Column(
             pn.pane.Markdown(
                 configuration.metadata_summarization_status,
                 width=360,
+                styles={"font-size": "0.8rem"}
             ),
             align=("start", "center"),  # vertical, horizontal
         ),

@@ -14,7 +14,11 @@ class Initialize:
     diagrams = {
         "full": "0_fulll.jpg",
         "Human Input Agent": "1_human_inputt.jpg",
-        "get_human_input": "get_human_input.jpg",
+        "get_human_input":{ 
+            "Human Input Agent": "1_human_inputt.jpg",
+            "API Selector Agent": "get_human_input.jpg" 
+        }
+        ,
         "Input Matcher": "2_task_matcherr.jpg",
         "API Selector Agent": "3_api_selectorr.jpg",
         "Decision Validator Agent": "4_decision_validatorr.jpg",

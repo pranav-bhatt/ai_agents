@@ -76,7 +76,7 @@ def get_human_input(agent_name: str, agent_question: str) -> str:
     """
     print(f"The get human input tool is called with name:{agent_name}\n and \n question{agent_question}\n\n")
     configuration.active_diagram.value = (
-        f"{configuration.diagram_path}/{configuration.diagrams['get_human_input']}"
+        f"{configuration.diagram_path}/{configuration.diagrams['get_human_input'][agent_name]}"
     )
     configuration.chat_interface.send(
         value=pn.pane.Markdown(

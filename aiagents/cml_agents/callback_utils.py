@@ -10,21 +10,18 @@ def custom_agent_callback(output, *args, **kwargs):
         agent_match = re.search(r"return_values='([^']+)'", str(args))
         agent_name = agent_match.group(1) if agent_match else ""
         if agent_name != "Swagger API Description Summarizer":
-            # print("agent name =", agent_name)
             configuration.current_agent = agent_name
-            # CustomPanelCallbackHandler.on_chain_end()
 
     pprint(f"The callback kwargs are {kwargs}")
-    #pprint(f"The callback received from the agent is {formatted_answer}")
 
 def custom_callback(*args, **kwargs):
-    # pprint(f"The callback args are {args}")
-    # pprint(f"The callback kwargs are {kwargs}")
+    pprint(f"The callback args are {args}")
+    pprint(f"The callback kwargs are {kwargs}")
     pass
     #pprint(f"The callback received from the agent is {formatted_answer}")
 
 def custom_initialization_callback(*args, **kwargs):
-    # pprint(f"The callback args are {args}")
-    # pprint(f"The callback kwargs are {kwargs}")
+    pprint(f"The callback args are {args}")
+    pprint(f"The callback kwargs are {kwargs}")
     pass
     #pprint(f"The callback received from the agent is {formatted_answer}")

@@ -18,7 +18,7 @@ from aiagents.config import Initialize
 class ManagerAgents:
     def __init__(self, configuration: Initialize) -> None:
         self.task_matching_agent = Agent(
-            role="Task Matcher",
+            role="Input Matcher",
             goal="""Match the tasks to the best matching API based on the metadata summaries."""
             """ Fetch the metadata summary using the metadata_summary_fetcher tool. If there"""
             """ is no metadata summary available, make sure that you return a meesage to the user with appropriate message that"""
@@ -33,7 +33,7 @@ class ManagerAgents:
             llm=configuration.llm,
             callbacks=configuration.customInteractionCallbacks,
             step_callback=custom_agent_callback,
-            step_kwargs={"agent": "Task Matcher"}
+            step_kwargs={"agent": "Input Matcher"}
         )
 
         self.manager_agent = Agent(
@@ -66,7 +66,7 @@ class ManagerAgents:
             ),
             backstory=dedent(
                 """
-                You are an API selector and caller where based on the context received by the task matcher, you need to choose the exact 
+                You are an API selector and caller where based on the context received by the input matcher, you need to choose the exact 
                 metadata file needed to use to service a user query. Make sure to generate full complete answers, and make no assumptions.
 
                 You are also very experienced with understanding the importance of varied parameters. You are patient and can help 

@@ -8,7 +8,7 @@ class LLMConfig:
         self.config_dict = config_dict
         self.context_len = None
         self.llm_name = "llama3-70b-8192"
-        self.temperature = 0
+        self.temperature = 0.3
         self.stop = ["\n"]
         self.max_tokens = 4096
         self.end_of_prompt = ""

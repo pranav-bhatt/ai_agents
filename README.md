@@ -1,6 +1,24 @@
-# aiagents
+# Multi-Agent API Orchestrator using CrewAI
 
-## Structure and Components
+### Welcome to the Multi-Agent API Orchestrator
+
+Get started by configuring your model and API integrations. We support both **Azure OpenAI** and **OpenAI** services. Please follow the steps below:
+
+#### Configuration Steps
+- **Azure OpenAI**: Provide the deployment name, endpoint URL, embedding deployment name, and API key.
+- **OpenAI**: Simply provide your OpenAI API key to enable model integration.
+
+#### Natural Language (NL) to API Integration
+- **Upload API Specification**: Upload a valid API Specification file.
+- **API Endpoint**: Enter the API endpoint for the integration.
+- **API Bearer Token**: Provide the bearer token to enable secure API authentication.
+
+Once all details are entered, click **Upload** to validate your inputs and initiate the orchestration process. **Streamline API orchestration** with CrewAI—handle complexities effortlessly and focus on results.""",
+
+
+The framework is segregated into 2 crews as described below
+
+## Structure and Components of the Interaction Crew
 
 ### Tools Used
 1. **swagger_directory_lister** = list all the files in the '{configuration.swagger_files_directory}' directory
@@ -21,7 +39,7 @@
 ### Agents in Action
 1. **Swagger Splitter Agent** = splits large Swagger JSON files into smaller, manageable files, ensuring efficient processing.
 2. **Human Input Agent** = gathers required information from the user and relaying it back to the delegating agent.
-3. **Task Matcher Agent** = identifies the best matching Swagger metadata file for a given task using metadata summaries.
+3. **Input Matcher Agent** = identifies the best matching Swagger metadata file for a given task using metadata summaries.
 4. **Metadata Summarizer Agent** = generates concise, descriptive summaries of API capabilities for all Swagger JSON files.
 5. **API Selector Agent** = selects the most appropriate API endpoint and method from a metadata file to fulfill a task.
 6. **Decision Validator Agent** = validates whether the actions of the API Selector Agent will satisfactorily fulfill the<br>
@@ -65,4 +83,4 @@ errors or missing information.
 5. **Manager Task** [<b style="color:#ffc482">API Selector Agent</b>] = Identifies and return the most suitable Swagger file based on the metadata summary and user context.
 6. **Decision Validator Task** [<b style="color:#c5813d">Decision Validator Agent</b>] = Validates the API Selector Agent's proposed answer against the original query, concluding whether it meets the user's intent and expectations.
 7. **API Calling Task** [<b style="color:#cc9999">API Caller Agent</b>] = Makes the API call, ensuring all parameters are identified, requested, and the payload is confirmed before execution.
-8. Stop execution. Need to click on 'Reload Crew' to start a new session.
+8. Stop execution. Need to click on 'Restart Crew' to start a new session.

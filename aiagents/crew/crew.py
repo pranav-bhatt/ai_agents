@@ -1,10 +1,12 @@
 from os import environ, listdir
 import os
 import shutil
-
+from aiagents.custom_threading import threads
+from aiagents.config import configuration
 from crewai import Crew
+from dotenv import find_dotenv, get_key, load_dotenv, set_key
 import panel as pn
-
+from bokeh.server.contexts import BokehSessionContext
 from aiagents.cml_agents.manager_agents import ManagerAgents
 from aiagents.cml_agents.swagger_splitter import SwaggerSplitterAgents
 from aiagents.cml_agents.agents import Agents
@@ -12,7 +14,10 @@ from aiagents.cml_agents.parse_for_manager import swagger_parser
 from aiagents.cml_agents.callback_utils import custom_callback, custom_initialization_callback
 from aiagents.cml_agents.tasks import Tasks, TasksInitialize
 
-from aiagents.config import Initialize
+from aiagents.config import Initialize, configuration
+from aiagents.custom_threading import threads
+
+from aiagents.panel_utils.panel_stylesheets import chat_stylesheet
 
 
 # we can't directly import the agents and tasks because we want to ensure that the configuration is first
@@ -32,6 +37,32 @@ def StartCrewInitialization(configuration: Initialize):
     #     # Recreate the empty directory
     #     os.makedirs(configuration.generated_folder_path)
 
+    env_file = find_dotenv()
+    load_dotenv(env_file)
+    file_count = get_key(env_file, "fileCount")
+    try:
+        file_count = int(file_count)
+    except:
+        file_count = 0
+    if file_count >= 1:
+        configuration.metadata_summarization_status.value = (
+            f"Processing the API Specification file {configuration.new_file_name} ⏱" 
+        )
+    else:
+        configuration.chat_interface.send(
+            pn.pane.Markdown(
+                f"""Your API specification file, **{configuration.new_file_name}**, is currently being processed to figure out metadata to route future requests. This may take a few moments as we thoroughly analyze its content to ensure all details are accurately captured.
+                We kindly request your patience during this process, and you will be notified immediately upon its completion.""",
+                styles=configuration.chat_styles,
+                stylesheets=[chat_stylesheet]
+            ),
+            user="System",
+            respond=False,
+            avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
+        )
+        configuration.initialization_spinner.visible = True
+        configuration.initialization_spinner.value = True
+
     for filename in listdir(configuration.swagger_files_directory):
             if filename == configuration.new_file_name:
                 swagger_parser(
@@ -40,7 +71,6 @@ def StartCrewInitialization(configuration: Initialize):
                     configuration.generated_folder_path,
                 )
     agent_dict = {
-        # "swagger_splitter_agent": swagger_splitter_agents.swagger_splitter_agent,
         "metadata_summarizer_agent": swagger_splitter_agents.metadata_summarizer_agent,
     }
     tasks = TasksInitialize(configuration=configuration, agents=agent_dict)
@@ -65,20 +95,10 @@ def StartCrewInitialization(configuration: Initialize):
 
     splitterCrew = Crew(
         agents=[
-            # agent_dict["swagger_splitter_agent"],
             agent_dict["metadata_summarizer_agent"],
-            # agent_dict["task_matching_agent"],
-            # agent_dict["manager_agent"],
-            # agent_dict["human_input_agent"],
-            # # agent_dict["api_caller_agent"],
-            # agent_dict["validator_agent"],
         ],
         tasks=[
             tasks.metadata_summarizer_task,
-            # tasks.initial_human_input_task,
-            # tasks.task_matching_task,
-            # tasks.manager_task,
-            # tasks.api_calling_task,
         ],
         verbose=1,
         memory=False,
@@ -86,13 +106,64 @@ def StartCrewInitialization(configuration: Initialize):
         task_callback=custom_initialization_callback
     )
     try:
+        configuration.processing_file = True
         splitterCrew.kickoff()
-        configuration.metadata_summarization_status.value = "Processed the API Spec File"
+        env_file = find_dotenv()
+        load_dotenv(env_file)
+        file_count = get_key(env_file, "fileCount")
+        try:
+            file_count = int(file_count)
+        except:
+            file_count = 0
+        if file_count == 0:
+            configuration.chat_interface.send(
+                pn.pane.Markdown(
+                    f"""The API Specification File {configuration.new_file_name} has been successfully processed.""",
+                    styles=configuration.chat_styles,
+                    stylesheets=[chat_stylesheet]
+                ),
+                user="System",
+                respond=False,
+                avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
+            )
+            configuration.initialization_spinner.visible = False
+            configuration.initialization_spinner.value = False
+            session_created()
+        else:
+            configuration.metadata_summarization_status.value = f"Processed the API Specification File {configuration.new_file_name}"
+        file_count += 1
+        set_key(env_file, 'fileCount',str(file_count))
+        configuration.processing_file = False
+        if not configuration.empty_inputs:
+            configuration.upload_button.disabled = False
     except Exception as err:
-        configuration.metadata_summarization_status.value = f"Starting Initailization Crew Failed with {err}\n Please Reload the Crew."
+        load_dotenv(env_file)
+        file_count = get_key(env_file, "fileCount")
+        try:
+            file_count = int(file_count)
+        except:
+            file_count = 0
+        if file_count == 0:
+            configuration.chat_interface.send(
+                pn.pane.Markdown(
+                    f"""Failed with: {err}\nPlease upload the details again.""",
+                    styles=configuration.chat_styles,
+                    stylesheets=[chat_stylesheet]
+                ),
+                user="System",
+                respond=False,
+                avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
+            )
+            configuration.initialization_spinner.visible = False
+            configuration.initialization_spinner.value = False
+        else:
+            configuration.metadata_summarization_status.value = f"Failed with: {err}\nPlease upload the details again."
         configuration.spinner.visible=False
         configuration.spinner.value=False
         configuration.reload_button.disabled=False
+        configuration.processing_file=False
+        if not configuration.empty_inputs:
+            configuration.upload_button.disabled = False
 
 
 
@@ -104,12 +175,9 @@ def StartCrewInteraction(configuration: Initialize):
 
 
     agent_dict = {
-        # "swagger_splitter_agent": swagger_splitter_agents.swagger_splitter_agent,
-        #"metadata_summarizer_agent": swagger_splitter_agents.metadata_summarizer_agent,
         "task_matching_agent": manager_agents.task_matching_agent,
         "manager_agent": manager_agents.manager_agent,
         "human_input_agent": agents.human_input_agent,
-        # "api_caller_agent": agents.api_caller_agent,
         "validator_agent": agents.validator_agent,
     }
 
@@ -136,20 +204,15 @@ def StartCrewInteraction(configuration: Initialize):
 
     splitterCrew = Crew(
         agents=[
-            # agent_dict["swagger_splitter_agent"],
-            #agent_dict["metadata_summarizer_agent"],
             agent_dict["task_matching_agent"],
             agent_dict["manager_agent"],
             agent_dict["human_input_agent"],
-            # agent_dict["api_caller_agent"],
             agent_dict["validator_agent"],
         ],
         tasks=[
-            #tasks.metadata_summarizer_task,
             tasks.initial_human_input_task,
             tasks.task_matching_task,
             tasks.manager_task,
-            # tasks.api_calling_task,
         ],
         verbose=1,
         memory=False,
@@ -159,23 +222,91 @@ def StartCrewInteraction(configuration: Initialize):
 
     try:
         splitterCrew.kickoff()
+
         configuration.chat_interface.send(
-            "If you have any other queries or need further assistance, please Reload the Crew.", 
+            pn.pane.Markdown(
+                "Execution Completed", 
+                styles=configuration.chat_styles,
+                stylesheets=[chat_stylesheet]
+            ), 
             user="System", 
-            respond=False)
+            respond=False,
+            avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
+        )
+        reset_for_new_input()
         configuration.spinner.value = False
         configuration.spinner.visible = False
     
     except Exception as err:
         configuration.chat_interface.send(
             pn.pane.Markdown(
-                object=f"Starting Interaction Crew Failed with {err}\n Please Reload the Crew.",
-                styles=configuration.chat_styles
+                object=f"Starting Interaction Crew Failed with {err}\n Please try restarting the crew.",
+                styles=configuration.chat_styles,
+                stylesheets=[chat_stylesheet]
             ),
             user="System",
-            respond=False
+            respond=False,
+            avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
         )
 
         configuration.spinner.visible=False
         configuration.spinner.value=False
         configuration.reload_button.disabled=False
+
+
+
+# Handle session creation, which includes starting the CrewAI process
+def session_created():
+    # Disable the start button and clear chat interface to start a session
+    configuration.chat_interface.send(
+        pn.pane.Markdown(
+            "Starting the Crew",
+            styles=configuration.chat_styles,
+            stylesheets=[chat_stylesheet]
+        ), user="System", respond=False,
+        avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
+    )
+    # Show the loading spinner as the Crew loads
+    configuration.spinner.value = True
+    configuration.spinner.visible = True
+    configuration.crew_thread = threads.thread_with_trace(
+        target=StartCrewInteraction, args=(configuration,)
+    )
+    configuration.crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
+    configuration.crew_thread.start()
+
+def create_session_without_start_button():
+    configuration.chat_interface.send(
+        pn.pane.Markdown(
+            "Thank you. \n Please enter further query below once the Human Input Agent is available.",
+            styles=configuration.chat_styles,
+            stylesheets=[chat_stylesheet]
+        ), user="System", respond=False,
+        avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
+    )
+    # Show the loading spinner as the Crew loads
+    configuration.spinner.value = True
+    configuration.spinner.visible = True
+    configuration.crew_thread = threads.thread_with_trace(
+        target=StartCrewInteraction, args=(configuration,)
+    )
+    configuration.crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
+    configuration.crew_thread.start()
+
+def reset_for_new_input():
+    # Set the active diagram to the current full diagram path for visualization
+    configuration.active_diagram.value = (
+        f"{configuration.diagram_path}/{configuration.diagrams['full']}"
+    )
+    # Attempt to kill the currently running crew thread, if any
+    try:
+        configuration.crew_thread.kill()
+        print("Successfully killed thread")
+    except:
+        print("Not able to kill the thread")
+        pass
+    configuration.reload_button.disabled = True
+    configuration.spinner.visible = False
+    configuration.spinner.value = False
+    print("Setting configuration")
+    create_session_without_start_button()

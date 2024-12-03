@@ -107,7 +107,7 @@ class WikipediaSearch(BaseAction):
 
 ```python
 # get the llm for agent. Should already export OPENAI_API_KEY="" in the your terminal if you use OPENAI_API.
-llm_config_dict = {"llm_name": "gpt-3.5-turbo", "temperature": 0.9}
+llm_config_dict = {"llm_name": "gpt-3.5-turbo", "temperature": 0.3}
 llm_config = LLMConfig(llm_config_dict)
 llm = get_llm_backend(llm_config)
 # define an individual agent

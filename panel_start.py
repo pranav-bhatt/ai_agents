@@ -6,7 +6,7 @@ from json import loads, dump
 import time
 from openapi_spec_validator import validate
 from requests import head, exceptions
-from aiagents.crew import StartCrewInitialization, StartCrewInteraction
+from aiagents.crew import StartCrewInitialization, StartCrewInteraction, create_session_without_start_button
 from aiagents.panel_utils import CustomPanelCallbackHandler, CustomPanelSidebarHandler
 from aiagents.panel_utils.panel_stylesheets import (
     alert_stylesheet,
@@ -16,7 +16,10 @@ from aiagents.panel_utils.panel_stylesheets import (
     card_stylesheet,
     sidebar_styles,
     input_button_styles,
-    azure_input_stylesheet
+    azure_input_stylesheet,
+    nl2api_stylesheet,
+    markdown_stylesheet,
+    chat_stylesheet
 )
 
 # Set the environment variable RUN_PANEL to "True" if it's not already set
@@ -34,7 +37,7 @@ pn.extension(design="material")
 
 # Environment variables to be stored in the .env file
 env_vars = {
-    "LLM_TEMPERATURE": "0",
+    "LLM_TEMPERATURE": "0.1",
     "OPENAI_API_VERSION": "2024-02-01",
     "OPENAI_EMBEDDING_MODEL": "text-embedding-ada-002",
 }
@@ -59,35 +62,29 @@ def callback(contents: str, user: str, instance: pn.chat.ChatInterface):
 # Initialize a loading spinner that will be displayed when a process is running
 configuration.spinner = pn.indicators.LoadingSpinner(
     value=False, visible=False, height=30, width=30,
-    styles={"margin-top":"-2.8rem"}
+    styles={"margin-top":"-2.3rem"}
+)
+
+configuration.initialization_spinner = pn.indicators.LoadingSpinner(
+    value=False, visible=False, height=30, width=30, color="secondary",
+    styles={"margin-top":"-2.3rem"}
 )
 
 # Define the chat interface with a custom callback function
 configuration.chat_interface = pn.chat.ChatInterface(
-    callback=callback, show_rerun=False, show_undo=False, show_clear=False,
-    stylesheets=[card_stylesheet]
+    callback=callback, show_rerun=False, show_undo=False, show_clear=False, show_button_name=False,
+    widgets=[pn.chat.ChatAreaInput(
+        placeholder="Send your Message", 
+        disabled=True, 
+        stylesheets=[card_stylesheet], 
+        resizable=False
+    )],
+    stylesheets=[card_stylesheet],
+    avatar=pn.pane.Image(f"{configuration.diagram_path}/user.svg", styles={"margin-top": "1rem", "padding": "1.5rem"}),
+    user="Me",
 )
+configuration.chat_interface.message_params = {"reaction_icons": pn.chat.ChatReactionIcons(options={})}
 
-
-# Handle session creation, which includes starting the CrewAI process
-def session_created(session_context: BokehSessionContext):
-    # Disable the start button and clear chat interface to start a session
-    start_crew_button.disabled = True
-    configuration.chat_interface.clear()
-    configuration.chat_interface.send(
-        pn.pane.Markdown(
-            "Starting the Crew!",
-            styles=configuration.chat_styles
-        ), user="System", respond=False
-    )
-    # Show the loading spinner as the Crew loads
-    configuration.spinner.value = True
-    configuration.spinner.visible = True
-    configuration.crew_thread = threads.thread_with_trace(
-        target=StartCrewInteraction, args=(configuration,)
-    )
-    configuration.crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
-    configuration.crew_thread.start()
 
 
 # Verify if the provided API endpoint is reachable
@@ -105,9 +102,10 @@ def validate_api_endpoint_input(*events):
         is_valid, response = verify_api_endpoint(url_input.value, timeout=10)
         if is_valid:
             endpoint_alert.visible = False # Hide the "invalid API" alert if valid
+            check_input_value(*events)
         else:
             print("API Endpoint Verification Error:", response)
-            upload_button.disabled = True
+            configuration.upload_button.disabled = True
             endpoint_alert.visible = True
 
 
@@ -117,9 +115,10 @@ def validate_swagger_file_input(*events):
         try:
             validate(loads(file_input.value.decode()))
             swagger_alert.visible = False # Hide the "invalid Swagger" alert if valid
+            check_input_value(*events)
         except Exception as e:
-            print("Swagger Verification Error:", e)
-            upload_button.disabled=True # Disable the Upload button
+            print("API Specification Verification Error:", e)
+            configuration.upload_button.disabled=True # Disable the Upload button
             swagger_alert.visible = True # Show the "invalid Swagger file" alert if invalid
 
 
@@ -137,11 +136,13 @@ def check_input_value(*events):
         ) or(
             openai_provider_input.value == "OPENAI" and key_input.value
             and ml_api_input.value and url_input.value and file_input.value
-    )):
-        upload_button.disabled = False
+    )) and not swagger_alert.visible and not endpoint_alert.visible:
+        configuration.empty_inputs = False
+        configuration.upload_button.disabled = False if not configuration.processing_file else True
     else:
         # Keep upload button disabled if inputs are incomplete
-        upload_button.disabled = True
+        configuration.upload_button.disabled = True
+        configuration.empty_inputs = True
 
 
 # Define sidebar widgets
@@ -163,15 +164,15 @@ openai_provider_input = pn.widgets.RadioButtonGroup(
 
 # Inputs for Azure OpenAI related fields.
 azure_deployment_input = pn.widgets.TextInput(
-    name="Azure OpenAI Deployment   cml", 
+    name="Azure OpenAI Deployment", 
     styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet, azure_input_stylesheet],
 )
 azure_endpoint_input = pn.widgets.TextInput(
-    name="Azure OpenAI Endpoint       https://cml-gpt-1.openai.azure.com", 
+    name="Azure OpenAI Endpoint", 
     styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet, azure_input_stylesheet],
 )
 azure_embedding_input = pn.widgets.TextInput(
-    name="Azure OpenAI Embedding   cml-embedding",
+    name="Azure OpenAI Embedding",
     styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet, azure_input_stylesheet],
 )
 
@@ -186,7 +187,7 @@ azure_details = pn.Column(
 
 # OpenAI key input
 key_input = pn.widgets.PasswordInput(
-    name="OpenAI Key 6b5aeacf1b9c474fa484db1edf46ee33",
+    name="OpenAI Key",
     placeholder="",
     width=360,
     styles={"font-size": "50px"},
@@ -213,10 +214,14 @@ def update_card_contents():
         # Show both Azure details and key input for Azure when expanded
         configuration_details.objects = [azure_details, key_input]
         azure_details.visible = True
+        azure_name = "Azure " if "Azure " not in key_input.name else ""
+        key_input.name = azure_name + key_input.name
     else:
         # Show only key input for OpenAI or when collapsed
         configuration_details.objects = [key_input]
         azure_details.visible = False
+        if "Azure " in key_input.name:
+            key_input.name = key_input.name.split("Azure ")[1]
 
 def update_visibility(event=None):
     """Updates visibility of components based on the provider input value."""
@@ -237,11 +242,11 @@ url_input = pn.widgets.TextInput(
 ml_api_input = pn.widgets.PasswordInput(
     name="API Bearer Token", placeholder="", styles={"font-size": "50px"}, width=360, stylesheets=[input_stylesheet]
 )
-file_input = pn.widgets.FileInput(name="Upload", accept=".json",multiple=False, width=370, stylesheets=[input_stylesheet])
+file_input = pn.widgets.FileInput(name="Upload", accept=".json",multiple=False, width=360, stylesheets=[input_stylesheet])
 
 # Alert for invalid Swagger file
 swagger_alert = pn.pane.Alert(
-    "!!The Swagger file uploaded is invalid. Please upload a valid file",
+    "!!The API Specification file uploaded is invalid. Please upload a valid file",
     alert_type="danger",
     width=360,
     stylesheets=[alert_stylesheet],
@@ -266,13 +271,13 @@ nl2api_configuration = pn.Card(
     endpoint_alert,
     ml_api_input,
     collapsible=False,
-    title="NL2API",
-    width=385,
-    height=280,
-    styles={"background": "#eaf3f3", "max-height": "250px"},
+    title="Natural Language (NL) to API",
+    width=380,
+    styles={"background": "#eaf3f3", "overflow": "auto"},  # Enable scrolling if necessary
+    stylesheets=[nl2api_stylesheet],
     header_background="#cee3e3",
     active_header_background="#cee3e3",
-    header="<html><h4 style='margin:0.25rem; font-size:0.82rem'>NL2API</h4></html>",
+    header="<html><h4 style='margin:0.25rem; font-size:0.82rem'>Natural Language (NL) to API</h4></html>",
 )
 
 # Watch for changes in input values and trigger validations
@@ -281,11 +286,11 @@ azure_deployment_input.param.watch(check_input_value, "value")
 azure_endpoint_input.param.watch(check_input_value, "value")
 azure_embedding_input.param.watch(check_input_value, "value")
 key_input.param.watch(check_input_value, "value")
-url_input.param.watch(check_input_value, "value")
 url_input.param.watch(validate_api_endpoint_input, "value")
+url_input.param.watch(check_input_value, "value")
 ml_api_input.param.watch(check_input_value, "value")
-file_input.param.watch(check_input_value, "value")
 file_input.param.watch(validate_swagger_file_input, "value")
+file_input.param.watch(check_input_value, "value")
 
 
 # Handle input values and update the environment variables accordingly
@@ -328,12 +333,7 @@ def handle_inputs(event):
         if not get_key(env_file, "AZURE_OPENAI_ENDPOINT") or azure_endpoint_input.value:
             set_key(env_file, "AZURE_OPENAI_ENDPOINT", azure_endpoint_input.value)
 
-    # Handle the uploaded Swagger file: delete old file, create the directory, and save the new file
-    # if file_input.value:
-    #     try:
-    #         rmtree(configuration.generated_folder_path) # Remove old generated folder if it exists
-    #     except FileNotFoundError:
-    #         pass
+
 
     # If the directory for Swagger files does not exist, create it
     if not path.exists(configuration.swagger_files_directory):
@@ -351,38 +351,54 @@ def handle_inputs(event):
     configuration.update_configuration() # Update the configuration with the new values
     # Reset input values, disable the 'Upload' button, and enable the 'Start Crew' button after upload
     ml_api_input.value = url_input.value = file_input.value = ""
-    upload_button.disabled = True
+    configuration.upload_button.disabled = True
+    configuration.empty_inputs = True
     configuration.initialization_crew_thread = threads.thread_with_trace(
         target=StartCrewInitialization, args=(configuration,)
     )
     configuration.initialization_crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
     configuration.initialization_crew_thread.start()
-    start_crew_button.disabled = False
  
 
 # Upload button widget configuration and event handling
-upload_button = pn.widgets.Button(
+configuration.upload_button = pn.widgets.Button(
     name="Upload",
     button_type="primary",
     disabled=True,
     icon="upload",
     icon_size="1.2em",
     stylesheets=[button_stylesheet],
-    description="Upload the swagger file and the respective endpoints",
+    description="Upload the API Speicifcation file and the respective endpoints",
 )
-upload_button.on_click(handle_inputs)
+configuration.upload_button.on_click(handle_inputs)
 
-# Start Crew button widget configuration and event handling
-start_crew_button = pn.widgets.Button(
-    name="Start Crew",
-    button_type="primary",
-    disabled=True,
-    icon="plane-tilt",
-    icon_size="1.2em",
-    stylesheets=[button_stylesheet],
-    description="Trigger the crew execution",
-)
-start_crew_button.on_click(session_created)
+
+def reset_for_new_input(event):
+    # Set the active diagram to the current full diagram path for visualization
+    configuration.active_diagram.value = (
+        f"{configuration.diagram_path}/{configuration.diagrams['full']}"
+    )
+    # Attempt to kill the currently running crew thread, if any
+    try:
+        configuration.crew_thread.kill()
+    except:
+        pass
+    configuration.reload_button.disabled = True
+    configuration.chat_interface.clear()
+    configuration.spinner.visible = False
+    configuration.spinner.value = False
+    configuration.chat_interface.send(
+        pn.pane.Markdown(
+            "The crew has been restarted.", 
+            styles=configuration.chat_styles,
+            stylesheets=[chat_stylesheet]
+        ),
+        user="System",
+        respond=False,
+        avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
+    )
+    create_session_without_start_button()
+
 
 
 # Reload the diagram and handle post-reload session after stopping the crew thread
@@ -398,7 +414,6 @@ def reload_post_callback(event):
         pass
     # Clear the chat interface and Enable the 'Start Crew' button to start a new session
     configuration.chat_interface.clear()
-    start_crew_button.disabled = False
     # Disable the reload button to prevent redundant reloads and hide the spinner
     configuration.reload_button.disabled = True
     configuration.spinner.visible = False
@@ -406,28 +421,26 @@ def reload_post_callback(event):
     # Send a welcome message to the chat interface after reloading the session
     configuration.chat_interface.send(
         pn.pane.Markdown(
-            """Welcome to Multi-Agent API Orchestrator using CrewAI!! Here, in you can implement different 
-            swagger file integrations. Please upload the correct Swagger file, along with your OpenAI keys, 
-            API endpoint, and access keys to make necessary API calls. Once all the inputs have been 
-            provided, click on the 'Start Crew' button to fire the crew execution, and sit back and relax 
-            while the agent performs the requested tasks on your behalf with the least manual intervention!""",
+            """The crew has been restarted. Please enter further query below once the Human Input Agent Appears.""",
             styles=configuration.chat_styles,
+            stylesheets=[chat_stylesheet]
         ),
         user="System",
         respond=False,
+        avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
     )
 
 
 # Reload button widget configuration and event handling
 configuration.reload_button = pn.widgets.Button(
-    name="Reload Crew",
+    name="Restart Crew",
     disabled=True,
     icon="reload",
     icon_size="1.2em",
     stylesheets=[button_stylesheet],
-    description="Reload the Crew",
+    description="Restart the Crew",
 )
-configuration.reload_button.on_click(reload_post_callback)
+configuration.reload_button.on_click(reset_for_new_input)
 
 # Sidebar configuration for input fields and buttons
 configuration.sidebar = pn.Column(
@@ -442,15 +455,23 @@ configuration.sidebar = pn.Column(
             nl2api_configuration,
         ),
         pn.Row(
-            upload_button,
+            configuration.upload_button,
         ),
         pn.Row(
             pn.pane.Markdown(
                 configuration.metadata_summarization_status,
-                width=360,
-                styles={"font-size": "0.8rem"}
-            ),
-            align=("start", "center"),  # vertical, horizontal
+                width=380,
+                styles={
+                    "font-size": "0.83rem", 
+                    "background-color": "#e7f5eb",
+                    "color": "#092710",
+                    "padding": "0 0.8rem",
+                    "border-radius": "8px",
+                    "font-weight": "bold",
+                    "margin-left": "0.26rem",
+                },
+                stylesheets=[markdown_stylesheet]
+            )
         ),
         pn.Row(
             pn.pane.Image(
@@ -459,10 +480,10 @@ configuration.sidebar = pn.Column(
             ),
             align=("start", "center"),  # vertical, horizontal
         ),
-        pn.Row(start_crew_button, configuration.reload_button),
+        pn.Row(configuration.reload_button),
         styles=sidebar_styles, 
         hide_header=True,
-        width=400
+        width=405
     ),
     stylesheets=[card_stylesheet],
 )
@@ -479,11 +500,17 @@ configuration.customInitializationCallbacks = [
 
 # Main function to initialize and run the application
 def main():
+    env_file = find_dotenv()
+    load_dotenv(env_file)
+
+    # Update API endpoint in the .env file
+    set_key(env_file, 'fileCount', '0')
+
     # Instantiate the FastListTemplate with custom header and sidebar
     template = pn.template.FastListTemplate(
         header="""
             <html><a href="/" style='
-                font-size: 1.3rem;
+                font-size: 1.2rem;
                 color: #f1e1e1;
                 text-decoration: none;
                 margin-left: -2rem;
@@ -493,24 +520,75 @@ def main():
         sidebar=pn.Column(configuration.sidebar),
         accent="#2F4F4F",
         sidebar_width=400,
+        main_layout=None,
     )
     template.theme_toggle = False # Disable theme toggle button in the template
     # Combine the chat interface and loading spinner into the main layout
-    container = pn.Column(configuration.chat_interface, configuration.spinner)
+    footer = pn.pane.Markdown(
+        "Workflows are generated by AI and may be inaccurate.",
+        styles = {
+            "margin": "-0.3rem auto -0.8rem",
+            "padding": "0",
+            "font-size": "0.79rem",
+            "font-family": "Verdana",
+            "font-weight": "500",
+            "color": "#454545",
+        }
+    )
+    container = pn.Column(
+        configuration.chat_interface,
+        configuration.spinner,
+        configuration.initialization_spinner,
+        footer,
+    )
     template.main.append(container)
 
     # Send an initial message to the chat interface providing instructions to the user
     configuration.chat_interface.send(
         pn.pane.Markdown(
-            """Welcome to Multi-Agent API Orchestrator using CrewAI!! Here, in you can implement different 
-            swagger file integrations. Please upload the correct Swagger file, along with your OpenAI keys, 
-            API endpoint, and access keys to make necessary API calls. Once all the inputs have been 
-            provided, click on the 'Start Crew' button to fire the crew execution, and sit back and relax 
-            while the agent performs the requested tasks on your behalf with the least manual intervention!""",
-            styles=configuration.chat_styles
+            """
+    ### Welcome to the Multi-Agent API Orchestrator
+
+    Get started by configuring your model and API integrations. We support both **Azure OpenAI** and **OpenAI** services. Please follow the steps below:
+
+    #### Configuration Steps
+    - **Azure OpenAI**: Provide the deployment name, endpoint URL, embedding deployment name, and API key.
+    - **OpenAI**: Simply provide your OpenAI API key to enable model integration.
+
+    #### Natural Language (NL) to API Integration
+    - **Upload API Specification**: Upload a valid API Specification file.
+    - **API Endpoint**: Enter the API endpoint for the integration.
+    - **API Bearer Token**: Provide the bearer token to enable secure API authentication.
+
+    Once all details are entered, click **Upload** to validate your inputs and initiate the orchestration process. **Streamline API orchestration** with CrewAI—handle complexities effortlessly and focus on results.""",
+            styles=configuration.chat_styles,
+            stylesheets=[chat_stylesheet]
         ),
         user="System",
         respond=False,
+        avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"}),
+    )
+
+    configuration.chat_interface.send(
+        pn.pane.Markdown(
+            """
+        #### Accessing and Using the CML Workbench API Specification:
+        - Sign in to Cloudera AI.
+        - Access the API specification for CML Workbench at `https://<domain name of Cloudera AI instance>/api/v2/swagger.json`
+        - Navigate to **User Settings** > **API Keys** and select **Create API Key**.
+        - Copy the **API key** (bearer token) and the **domain endpoint** (API endpoint) from the browser’s address bar (e.g., `https://ml-xxxx123456.com`).
+
+        Example Tasks that the Agent Can Perform With the given API Specification:
+        - Create a project
+        - List all projects
+        - List all runtimes
+        """,
+            styles=configuration.chat_styles,
+            stylesheets=[chat_stylesheet]
+        ),
+        user="System",
+        respond=False,
+        avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
     )
 
     print("Running panel on port ", configuration.app_port)

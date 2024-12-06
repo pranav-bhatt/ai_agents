@@ -269,7 +269,7 @@ def session_created():
     # Show the loading spinner as the Crew loads
     configuration.spinner.value = True
     configuration.spinner.visible = True
-    configuration.crew_thread = threads.thread_with_trace(
+    configuration.crew_thread = threads.ThreadWithTrace(
         target=StartCrewInteraction, args=(configuration,)
     )
     configuration.crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
@@ -287,7 +287,7 @@ def create_session_without_start_button():
     # Show the loading spinner as the Crew loads
     configuration.spinner.value = True
     configuration.spinner.visible = True
-    configuration.crew_thread = threads.thread_with_trace(
+    configuration.crew_thread = threads.ThreadWithTrace(
         target=StartCrewInteraction, args=(configuration,)
     )
     configuration.crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
@@ -300,7 +300,16 @@ def reset_for_new_input():
     )
     # Attempt to kill the currently running crew thread, if any
     try:
-        configuration.crew_thread.kill()
+        print("Stopping thread...")
+        success = configuration.crew_thread.stop()
+        
+        if not success:
+            print("Soft stop failed, forcing thread termination")
+            killed = configuration.crew_thread.force_stop()
+            print(f"Force thread termination gave {killed}")
+        
+        configuration.crew_thread.join()
+        print("Thread terminated")
         print("Successfully killed thread")
     except:
         print("Not able to kill the thread")

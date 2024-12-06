@@ -10,7 +10,6 @@ from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
 import panel as pn
-from aiagents.custom_threading import threads
 from aiagents.config import configuration
 from aiagents.panel_utils.panel_stylesheets import card_stylesheet, chat_stylesheet
 

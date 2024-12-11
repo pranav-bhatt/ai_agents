@@ -37,7 +37,7 @@ pn.extension(design="material")
 
 # Environment variables to be stored in the .env file
 env_vars = {
-    "LLM_TEMPERATURE": "0.25",
+    "LLM_TEMPERATURE": "0.1",
     "OPENAI_API_VERSION": "2024-02-01",
     "OPENAI_EMBEDDING_MODEL": "text-embedding-ada-002",
 }
@@ -353,7 +353,7 @@ def handle_inputs(event):
     ml_api_input.value = url_input.value = file_input.value = ""
     configuration.upload_button.disabled = True
     configuration.empty_inputs = True
-    configuration.initialization_crew_thread = threads.ThreadWithTrace(
+    configuration.initialization_crew_thread = threads.thread_with_trace(
         target=StartCrewInitialization, args=(configuration,)
     )
     configuration.initialization_crew_thread.daemon = True  # Ensure the thread dies when the main thread (the one that created it) dies
@@ -380,16 +380,7 @@ def reset_for_new_input(event):
     )
     # Attempt to kill the currently running crew thread, if any
     try:
-        print("Stopping thread...")
-        success = configuration.crew_thread.stop()
-        
-        if not success:
-            print("Soft stop failed, forcing thread termination")
-            killed = configuration.crew_thread.force_stop()
-            print(f"Force thread termination gave {killed}")
-        
-        configuration.crew_thread.join()
-        print("Thread terminated")
+        configuration.crew_thread.kill()
     except:
         pass
     configuration.reload_button.disabled = True
@@ -418,16 +409,7 @@ def reload_post_callback(event):
     )
     # Attempt to kill the currently running crew thread, if any
     try:
-        print("Stopping thread...")
-        success = configuration.crew_thread.stop()
-        
-        if not success:
-            print("Soft stop failed, forcing thread termination")
-            killed = configuration.crew_thread.force_stop()
-            print(f"Force thread termination gave {killed}")
-        
-        configuration.crew_thread.join()
-        print("Thread terminated")
+        configuration.crew_thread.kill()
     except:
         pass
     # Clear the chat interface and Enable the 'Start Crew' button to start a new session

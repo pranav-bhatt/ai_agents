@@ -89,7 +89,7 @@ class Initialize:
         self.llm = AzureChatOpenAI(azure_deployment=environ.get(
             "AZURE_OPENAI_DEPLOYMENT", "cml"
         )) if self.openai_provider == "AZURE_OPENAI" else ChatOpenAI()
-        self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.1))
+        self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.25))
         print("LLM temperature: ", self.llm.temperature)
 
     def update_config_upload(self):
@@ -100,7 +100,7 @@ class Initialize:
         self.llm = AzureChatOpenAI(azure_deployment=environ.get(
             "AZURE_OPENAI_DEPLOYMENT", "cml"
         )) if self.openai_provider == "AZURE_OPENAI" else ChatOpenAI()
-        self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.1))
+        self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.25))
         print("LLM temperature: ", self.llm.temperature)
 
 

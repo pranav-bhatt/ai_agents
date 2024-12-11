@@ -32,7 +32,11 @@ def test_manager_agent():
     # setting the llm config of manager agent
     llm_config_dict = {
         "llm_name": "llama3-70b-8192",
+<<<<<<< HEAD
         "temperature": 0.1,
+=======
+        "temperature": 0.3,
+>>>>>>> new-git/master
         "context_len": 8192,
     }
     llm_config = LLMConfig(llm_config_dict)

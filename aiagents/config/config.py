@@ -12,15 +12,19 @@ import panel as pn
 class Initialize:
 
     diagrams = {
-        "full": "0_full.jpg",
-        "Human Input Agent": "1_human_input.jpg",
-        "Task Matcher": "2_task_matcher.jpg",
-        "Swagger API Description Summarizer": "3_metadata_summariser.jpg",
-        "swagger_splitter": "4_swagger_splitter.jpg",
-        "API Selector Agent": "5_api_selector.jpg",
-        "Decision Validator Agent": "6_decision_validator.jpg",
-        "API Caller Agent": "7_api_caller.jpg",
-        "API Calling Tool": "api_tool.jpg",
+        "full": "0_fulll.jpg",
+        "Human Input Agent": "1_human_inputt.jpg",
+        "get_human_input":{ 
+            "Human Input Agent": "1_human_inputt.jpg",
+            "API Selector Agent": "get_human_input.jpg",
+            "Input Matcher": "2_task_matcherr.jpg",
+            "Decision Validator Agent": "4_decision_validatorr.jpg",
+        }
+        ,
+        "Input Matcher": "2_task_matcherr.jpg",
+        "API Selector Agent": "3_api_selectorr.jpg",
+        "Decision Validator Agent": "4_decision_validatorr.jpg",
+        "api_caller": "api_tool.jpg",
     }
 
     def __init__(self):
@@ -43,45 +47,60 @@ class Initialize:
         self.selected_swagger_file = ""
         self.user_input = None
         self.first_run = pn.Param.param
+        self.current_agent = "" 
+        self.new_file_name = ""
 
         self.sidebar: pn.Column = None
+        self.metadata_summarization_status = pn.widgets.TextInput(value="")
+        self.processing_file = False
+        self.empty_inputs = True
         self.chat_interface: pn.chat.ChatInterface = None
         self.spinner: pn.indicators.LoadingSpinner = None
+        self.initialization_spinner: pn.indicators.LoadingSpinner = None
         self.reload_button: pn.widgets.Button = None
 
-        self.customCallbacks = []
+        self.customInteractionCallbacks = []
+        self.customInitializationCallbacks = []
         self.diagram_path = f"{self.project_root}/assets/images"
         self.active_diagram = pn.widgets.TextInput(
             value=f"{self.diagram_path}/{self.diagrams['full']}"
         )
         self.avatar_images = {
-            "Human Input Agent": f"{self.diagram_path}/human_input_agent.jpg",
+            "Human Input Agent": f"{self.diagram_path}/human_input_agent.svg",
             "API Selector Agent": f"{self.diagram_path}/api_selector_agent.jpg",
             "Decision Validator Agent": f"{self.diagram_path}/decision_validator_agent.jpg",
-            "API Caller Agent": f"{self.diagram_path}/api_caller_agent.jpg",
-            "Task Matcher": f"{self.diagram_path}/task_matcher_agent.jpg",
-            "Swagger API Description Summarizer": f"{self.diagram_path}/metadata_summarizer_agent.jpg",
-            "swagger_splitter": f"{self.diagram_path}/swagger_splitter_agent.jpg",
+            "Input Matcher": f"{self.diagram_path}/task_matcher_agent.jpg",
         }
-        self.chat_styles={"font-size": "1.2em"}
+        self.chat_styles={
+            "font-size": "0.87rem",
+            "background-color": "#f6fafa",
+            "min-height": "2.5rem",
+            "border": "0.05rem solid #c0caca",
+        }
+        self.initialization_crew_thread: threads.thread_with_trace = None
         self.crew_thread: threads.thread_with_trace = None
+        self.upload_button: pn.widgets.Button = None
 
     def update_configuration(self):
         load_dotenv(find_dotenv(), override=True)
-
-        # from langchain_groq import ChatGroq
-        # self.llm = ChatGroq(
-        #     temperature=0,
-        #     model_name="llama3-70b-8192",
-        #     api_key="gsk_",
-        # )
 
         print("openai provider:", self.openai_provider)
     
         self.llm = AzureChatOpenAI(azure_deployment=environ.get(
             "AZURE_OPENAI_DEPLOYMENT", "cml"
         )) if self.openai_provider == "AZURE_OPENAI" else ChatOpenAI()
-        self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.4))
+        self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.25))
+        print("LLM temperature: ", self.llm.temperature)
+
+    def update_config_upload(self):
+        load_dotenv(find_dotenv(), override=True)
+
+        print("openai provider:", self.openai_provider)
+    
+        self.llm = AzureChatOpenAI(azure_deployment=environ.get(
+            "AZURE_OPENAI_DEPLOYMENT", "cml"
+        )) if self.openai_provider == "AZURE_OPENAI" else ChatOpenAI()
+        self.llm.temperature = float(environ.get("LLM_TEMPERATURE", 0.25))
         print("LLM temperature: ", self.llm.temperature)
 
 

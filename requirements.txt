@@ -9,3 +9,6 @@ load-dotenv==0.1.0
 jsonref==1.1.0 
 pydantic==2.8.2
 openapi-spec-validator==0.7.1
+fastapi
+python-multipart
+uvicorn

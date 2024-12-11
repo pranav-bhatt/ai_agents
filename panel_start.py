@@ -370,7 +370,7 @@ def main():
 
     configuration.chat_interface.send(
         pn.pane.Markdown(
-            """Welcome to Multi-Agent API Orchestrator using CrewAI!! Here, in you can implement different 
+            """Welcome to Multi-Agent API Orchestrator using CrewAI. Here, in you can implement different 
             swagger file integrations. Please upload the correct Swagger file, along with your OpenAI keys, 
             API endpoint, and access keys to make necessary API calls. Once all the inputs have been 
             provided, click on the 'Start Crew' button to fire the crew execution, and sit back and relax 

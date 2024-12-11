@@ -6,23 +6,8 @@ from pydantic import BaseModel, Field, field_validator
 
 from aiagents.config import Initialize
 
-
-class Tasks:
+class TasksInitialize:
     def __init__(self, configuration: Initialize, agents: Dict[str, Agent]) -> None:
-        self.splitter_task = Task(
-            description=dedent(
-                """
-                Find all the swagger files present in the target swagger directory and then split each swagger file.
-                * If the folder called 'generated' is already present, consider this task as complete, and take no 
-                further actions.
-                * If the generated folder is not present, run the swagger splitter tool.
-                
-                Make no assumptions whatsoever.
-                """
-            ),
-            expected_output="A concise answer stating the exact location of all the generated swagger metadata files.",
-            agent=agents["swagger_splitter_agent"],
-        )
 
         class metadata_summaries(BaseModel):
             summaries: dict[str, str]
@@ -43,34 +28,92 @@ class Tasks:
             ),
             expected_output="A concise answer stating the exact location of the final generated metadata summary file.",
             agent=agents["metadata_summarizer_agent"],
-            output_json=metadata_summaries,
             output_file=f"{configuration.generated_folder_path}/metadata_summaries",
-            context=[self.splitter_task],
         )
+
+
+
+
+
+class Tasks:
+    def __init__(self, configuration: Initialize, agents: Dict[str, Agent]) -> None:
+        # self.splitter_task = Task(
+        #     description=dedent(
+        #         """
+        #         Find all the swagger files present in the target swagger directory and then split each swagger file.
+        #         * If the folder called 'generated' is already present, consider this task as complete, and take no 
+        #         further actions.
+        #         * If the generated folder is not present, run the swagger splitter tool.
+                
+        #         Make no assumptions whatsoever.
+        #         """
+        #     ),
+        #     expected_output="A concise answer stating the exact location of all the generated swagger metadata files.",
+        #     agent=agents["swagger_splitter_agent"],
+        # )
+
+        # class metadata_summaries(BaseModel):
+        #     summaries: dict[str, str]
+
+        # self.metadata_summarizer_task = Task(
+        #     description=dedent(
+        #         f"""
+        #         Trigger the 'summary_generator' tool. This tool will automatically pick up the necessary swagger files
+        #         from the {configuration.generated_folder_path}, and generate a summary for each of them. It outputs a structured
+        #         k:v pair json, where the key is the location of the summarized swagger file, and the value is 
+        #         the generated summary.
+
+        #         If the metadata summary has already been generated, consider this task as complete, and take no 
+        #         further actions.
+
+        #         Make no assumptions whatsoever.
+        #         """
+        #     ),
+        #     expected_output="A concise answer stating the exact location of the final generated metadata summary file.",
+        #     agent=agents["metadata_summarizer_agent"],
+        #     #output_json=metadata_summaries,
+        #     output_file=f"{configuration.generated_folder_path}/metadata_summaries",
+        #     # context=[self.splitter_task],
+        # )
+
+        class humanInputOutput(BaseModel):
+            """
+            This class is used to store the decision made by the input matcher agent. It has several fields:
+            - answer: A clear answer stating the user action EXACTLY as they have mentioned within quotes
+            - role: The role of the agent executing the task
+            """
+
+            answer: str
+            role: str
 
         self.initial_human_input_task = Task(
             description=dedent(
                 """
-                Ask the human what action they would like to perform using the swaggers they have provided.
+                Ask the human what action they would like to perform using the API Specification file they have provided and 
+                format the result in the exact structure required by the 'humanInputOutput' class.
                 """
             ),
             expected_output=dedent(
-                """
-                A clear answer stating the user action EXACTLY as they have mentioned within quotes, 
-                and please don't change or miss a single word they have provided.
+                f"""
+                The output should be of the structure of the humanInputOutput class. It has several fields:
+                    - answer: A clear answer stating the user action EXACTLY as they have mentioned within quotes, 
+                        and please don't change or miss a single word they have provided. 
+                    - role: The value of {agents['human_input_agent'].role}
                 """
             ),
+            output_json=humanInputOutput,
             agent=agents["human_input_agent"],
         )
 
-        class taskMatcherDecision(BaseModel):
+        class inputMatcherDecision(BaseModel):
             """
-            This class is used to store the decision made by the task matcher agent. It has several fields:
+            This class is used to store the decision made by the input matcher agent. It has several fields:
             - file_name: The file name of the appropriate swagger metadata file chosen.
             - file_location: The path or location of the appropriate swagger metadata file chosen.
             - task: The task at hand for which the swagger file was chosen.
-            - reason: The reasoning behind why the task matcher agent has decided to use this particular swagger metadata file.
+            - reason: The reasoning behind why the input matcher agent has decided to use this particular swagger metadata file.
             - description: The description of this class used to identify the output
+            - role: The role of the agent executing the task
             """
 
             file_name: str
@@ -78,6 +121,7 @@ class Tasks:
             task: str
             reason: str
             description: str = Field("This output contains the appropriate swagger metadata file to use for the task at hand", frozen=True)
+            role: str
 
             @field_validator('description')
             def set_fixed_method(cls, v):
@@ -87,100 +131,140 @@ class Tasks:
             description=dedent(
                 """
                 Complete the following steps:
-                1. Fetch the metadata summary using the file read tool.
-                2. Once metadata file is present, figure out which swagger metadata file is best suited for the task 
-                already provided by the context of the human input task. The json is structured as k:v pairs where k is 
-                the path of the swagger and v is the summary of the swagger.
-                4. This is the most important step. Based on the metadata summaries, infer which swagger metadata 
-                file will be best suited to address the query. If the description is not inherently clear such that 
-                you aren't able to decide which swagger API needs to be used, make an assumption as to 
-                which swagger file to use.
-                5. Confirm the choice of API with the user by using the 'get_human_input' tool and make sure you provide 
-                the reasoning behind why you chose it. If there is only one API available, or if you are very confident about
-                the fact that a particular API can service the request, you can skip this step.
-                6. Return the location of the swagger metadata file that has been chosen in the exact structure as the 
-                taskMatcherDecision class with description 'This output contains the appropriate swagger metadata file 
-                to use for the task at hand' and finish execution.
+                1. Fetch Metadata Summary:
+                    1. Use the 'file read tool' to retrieve the metadata summary file. Ensure the contents are fully loaded before proceeding. If and only if no metadata summary file is available, return an error message indicating no API spec is available and Finish Execution by throwing an error with apt messaging..
+                2. Identify the Relevant Swagger File:
+                    1. Review the metadata file, which consists of key-value pairs where each key is the path of a Swagger file and each value is a summary.
+                    2. Based on the context provided by the human input task, analyze the summaries to determine which Swagger file aligns best with the task requirements.
+                3. Infer the Best Swagger File:
+                    1. Critical step: If the summaries are unclear or do not directly indicate the appropriate Swagger file, make a logical assumption based on the descriptions and your understanding of the task.
+                    2. Prioritize selecting the Swagger file that most closely matches the user's query and the context of the task.
+                4. Confirm with the User (Optional):
+                    1. If multiple API options are available, or if you are uncertain about your choice, use the 'get_human_input' tool to confirm your decision with the user.
+                    2. Provide a clear explanation of why you selected this particular Swagger API.
+                    3. If only one option exists or you are highly confident, you can skip this step and proceed directly.
+                5. Return Swagger Metadata Location:
+                    1. Once the appropriate Swagger file is identified, format the result in the exact structure required by the 'inputMatcherDecision' class.
+                    2. Include the description: "This output contains the appropriate swagger metadata file to use for the task at hand."
+                    3. Finish execution.
                 """
             ),
             expected_output="A concise answer stating the exact location of the appropriate swagger metadata file, "
-            """as well as the reason why it is the one that has been chosen. The output should be of the structure 
-            of the taskMatcherDecision class. It has several fields:
+            f"""as well as the reason why it is the one that has been chosen. The output should be of the structure 
+            of the inputMatcherDecision class. It has several fields:
                 - file_name: The file name of the appropriate swagger metadata file chosen.
                 - file_location: The path or location of the appropriate swagger metadata file chosen.
                 - task: The task at hand for which the swagger file was chosen.
-                - reason: The reasoning behind why the task matcher agent has decided to use this particular swagger metadata file.
+                - reason: The reasoning behind why the input matcher agent has decided to use this particular swagger metadata file.
                 - description: The description of this class which will be used to identify the output = 'This output contains 
                 the appropriate swagger metadata file to use for the task at hand'
+                - role: The value of {agents['task_matching_agent'].role}
             """,
-            output_json=taskMatcherDecision,
+            output_json=inputMatcherDecision,
             agent=agents["task_matching_agent"],
-            context=[self.metadata_summarizer_task, self.initial_human_input_task],
+            context=[ self.initial_human_input_task],
         )
+
+        class decisionValidatorOutput(BaseModel):
+            """
+            This class is used to store the decision validation done by the decision validator agent. It has two fields:
+            - answer: The conclusion and reasoning as to whether or not the action of the agent will result in the original query posed to the agent to be addressed
+            - role: The role of the agent executing the task
+            """
+
+            answer: str
+            role: str
 
         self.validator_task = Task(
             description=dedent(
                 """
                 Follow the below steps:
-                1. Observe the original query passed to the agent that asked your validation and understand its nuances
-                2. Observe the answer of the agent that has asked your validation and understand the exact outcome that will be produced
-                3. Using the above points, deduce whether or not the agent's actions will result in the satisfactory completion of the original query 
-                4. State your conclusion explicitly and explain why you reached that conclusion in a succinct manner to the 
-                calling agent and let it continue with the rest of its tasks
+                1. Understand the Original Query:
+                    1. Carefully review the original query that was passed to the agent requesting validation. Pay close attention to its nuances, ensuring you grasp the user’s intent and expectations.
+                2. Evaluate the Agent's Proposed Answer:
+                    1. Analyze the response provided by the agent seeking validation. Understand the exact outcome that will be produced based on its actions.
+                3. Assess the Outcome:
+                    1. Based on your understanding of both the original query and the proposed answer, determine whether the agent's actions will satisfactorily fulfill the user's request. Consider potential gaps or mismatches.
+                4. Provide a Conclusion:
+                    1. Clearly state whether the agent's proposed solution will result in successful task completion.
+                    2. Justify your conclusion with a concise explanation, detailing why the actions are or are not aligned with the original query.
+                    3. Communicate your decision to the calling agent so it can proceed with the rest of its tasks accordingly by formatting the result in the exact structure required by the 'decisionValidatorOutput' class.
                 """
             ),
             expected_output=dedent(
-                """
-                Output the conclusion and reasoning as to whether or not the action of the agent will result in the 
-                original query posed to the agent to be addressed
+                f"""
+                The output should be of the structure of the decisionValidatorOutput class. 
+                It has several fields:
+                    - answer: The conclusion and reasoning as to whether or not the action of the agent will result in the original query posed to the agent to be addressed
+                    - role: The value of {agents['validator_agent'].role}
                 """
             ),
+            output_json=decisionValidatorOutput,
             agent=agents["validator_agent"],
-            context=[self.metadata_summarizer_task],
         )
 
-        class managerDecision(BaseModel):
+        class managerOutput(BaseModel):
             """
-            This class is used to store the decision made by the manager agent. It has several fields:
-            - endpoint: The endpoint that the manager agent has decided needs to be used.
-            - method: The HTTP method that the manager agent has decided needs to be used.
-            - file: The location of the split metadata file associated with the endpoint..
-            - user_query: The original user query verbatim.
-            - reasoning: The reasoning behind why the manager agent has decided to use this particular endpoint and method .
+            This class is used to store the decision made by the input matcher agent. It has several fields:
+            - answer: The exact full result of the 'api caller tool', summarized and formatted clearly and concisely
+            - role: The role of the agent executing the task
             """
 
-            endpoint: str
-            method: str
-            file: str
-            user_query: str
-            reasoning: str
+            answer: str
+            role: str
 
         self.manager_task = Task(
             description=dedent(
                 """
                 Follow the following steps:
-                1. Read the contents of the metadata file using the file read tool. The location of the metadata file 
-                should be fetched from the task matcher task's context.
-                2. Once the contents of the metadata file are present, decide which endpoint and HTTP method is most suitable
-                to fulfill the task based on how similar the user query is to the description of the endpoint and method.
-                3. Present your choice of endpoint and method with justification to the validator agent along with the 
-                original query. The validator agent will either approve your choice or provide suggestions for improvement.
-                4. If suggestions are provided, adjust your choice accordingly and seek approval again.
-                5. Once the validator confirms your choice, output only the 'file' field associated with that endpoint, and
-                the original user query verbatim.
+                1. Read the Metadata File:
+                    1. Use the 'file read tool' to access the metadata file. The file location can be found in the context provided by the 'input matcher' agent.
+                2. Select Endpoint and HTTP Method:
+                    1. Analyze the metadata to identify the Swagger file that contains the endpoint most suited to the user query.
+                    2. Match the user’s query to endpoint descriptions by evaluating the similarity between the user's intent and the function of the endpoint.
+                3. Justify Endpoint Selection using Decision Validator Agent:
+                    1. Present the selected endpoint and HTTP method to the 'decision validator' agent, explaining how it aligns with the user’s query. 
+                    2. Make sure the justification is clear and directly tied to the user’s request.
+                4. Handle Feedback from Validator:
+                    1. If the 'decision validator' agent provides feedback, revise the selection and justify the change. 
+                    2. Ensure the updated selection addresses the user's query, and seek validation again if necessary.
+                5. Provide Parameters to User:
+                    1. Extract both required and optional parameters from the selected endpoint's Swagger file.
+                    2. Present the user with a clear list of required and optional parameters:
+                        1. Required parameters: List them along with brief descriptions.
+                        2. Optional parameters: Highlight optional parameters and describe how they enhance functionality.
+                6. Request User Input:
+                    1. Prompt the user to provide values for the required parameters based on the last step. Ensure that the request is polite and clear.
+                    2. Proceed without optional parameters or use default values unless the user provides them or requests to include them.
+                7. Respond to Additional Queries:
+                    1. If the user requests further related information (e.g., related endpoints, more data from the Swagger file, 
+                    or related API calls), assist them accordingly by retrieving the relevant details or making additional API calls as needed.
+                8. Build and Confirm Payload:
+                    1. Construct the final payload for the API call using the user-provided values for the parameters.
+                    2. Display the payload to the user for their review and confirmation before proceeding with the API call.
+                9. Execute the API Call:
+                    1. Use the 'api-caller' tool to trigger the API call with the payload and intelligently handle any errors that occur during the process. 
+                    2. If the issue requires user input or clarification, invoke the 'get human input' tool to ask the user for the relevant information.
+                    3. If the API Endpoint or API Bearer Token are found to be incorrect, fetch their correct values from the user using the 'get human input' tool, 
+                    and update the 'API_ENDPOINT' or 'API_BEARER_TOKEN' respectively using the 'update env variables' tool.
+                    4. Using the 'api-caller' tool retry the API call with the updated parameters and updated token/key. Even after 3 retries, if you still
+                    get error, return the error message back to the user.
+                10. Return Results:
+                    1. Once the API call is successful, return the full result to the user by formatting the result in the exact structure required by the 'managerOutput' class, and if there is an error, retry the API call for  max of 2 tries with 5 second delays and then return
+                        the error if still the call is not successful.
+                    2. If the result is complex, summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user.
                 """
             ),
             expected_output=dedent(
-                """
-                The output should be of the structure of the managerDecision class. It has several fields:
-                    - endpoint: The endpoint that the manager agent has decided needs to be used.
-                    - method: The HTTP method that the manager agent has decided needs to be used.
-                    - file: The location of the split metadata file associated with the endpoint..
-                    - query: The original user query verbatim.
-                    - reasoning: The reasoning behind why the manager agent has decided to use this particular endpoint and method .
+                f"""
+                The output should be of the structure of the managerOutput class. 
+                It has several fields:
+                    - answer: Once the API call is successful, return the exact full result of the 'api caller tool'. If the result is complex, 
+                        summarize it clearly and concisely to ensure easy understanding but make sure everything is sent to the user.
+                    - role: The value of {agents['manager_agent'].role}
                 """
             ),
-            output_json=managerDecision,
+            output_json=managerOutput,
             context=[
                 self.task_matching_task,
                 self.initial_human_input_task,
@@ -189,43 +273,3 @@ class Tasks:
             agent=agents["manager_agent"],
         )
 
-        self.api_calling_task = Task(
-            description=dedent(
-                """
-                Complete the following steps to make the API call, using the context obtained from the manager_task:
-                1. Read the swagger metadata file and identify the API call that the user has asked for. To construct the 
-                full path of the API call file, you will need to combine the information obtained from the manager task, 
-                as well as the path of the generated folder '{configuration.generated_folder_path}'.
-                2. Identify the parameters that are required and optional.
-                4. If you don't already have the information, ask the user to provide the information about the parameters.
-                Make sure to explicitly specify which parameters are the required and which are optional and also ensure
-                to explain each parameter in a well formatted, yet succinct manner. If the user doesn't specify required
-                parameters, prompt them gently again. If they leave out optional parameters, proceed without setting them.
-                3. If the user asks for information that you don't have, ask your boss, the API selector, to make another 
-                API call to help get the information. Once the information is fetched, provide it back to the user in a 
-                well formatted manner.
-                5. Once the user has provided the necessary information, we need to call the 'api_caller' tool. 
-                The api_caller tool , 
-                and the value is the value of the parameter. Once you pass the parameters, the tool has logic that will
-                parse it and perform the API call on your behalf. Make sure to refer to the description of the 'api_caller'
-                tool while passing parameters. Once you have constructed the final list of parameters, show it to the
-                user and get a confirmation that they are fine with the payload.
-                6. Make the API call by triggering the API call tool. If the API call returns an error, try to deal with 
-                the error yourself. If you determine that the error needs user intervention / clarification from the user,
-                go ahead and ask the user the necessary query. Once you have the details, go ahead and try to make the API
-                call again. The 'api_caller' tool supports **kwargs which you can use to send any extra parameters such as
-                "API_BEARER_TOKEN" and "API_ENDPOINT" in case the API call returned an error due to incorrect API endpoint 
-                or Bearer token being used, and the user has provided you with rectified values when you reported the error.
-                7. Once a satisfactory output has been obtained, return the outcome of the api call.
-                8. Once the outcome is returned, using the 'get_human_input' tool, inform the user with the below prompt:
-                'Please Reload the Crew if you have any other queries to be answered', and finish the execution.
-                """
-            ),
-            expected_output=dedent(
-                """
-                Output the result of the API call talking about the action that has been taken in a concise manner.
-                """
-            ),
-            agent=agents["api_caller_agent"],
-            context=[self.initial_human_input_task, self.manager_task],
-        )

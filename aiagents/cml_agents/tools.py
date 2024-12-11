@@ -1,6 +1,7 @@
+from ast import literal_eval
 from os import makedirs, listdir, environ
 from os.path import join, exists
-from dotenv import load_dotenv, find_dotenv
+from dotenv import get_key, load_dotenv, find_dotenv, set_key
 from textwrap import dedent
 from json import dump, loads
 from requests import get, post, patch, delete
@@ -20,6 +21,8 @@ from typing import Dict
 from aiagents.config import configuration
 
 from .parse_for_manager import swagger_parser
+
+from aiagents.panel_utils.panel_stylesheets import chat_stylesheet
 
 metadata_summary_fetcher = FileReadTool(file_path=configuration.metadata_summaries_path)
 
@@ -71,15 +74,21 @@ def get_human_input(agent_name: str, agent_question: str) -> str:
     - agent_name: The name of the agent invoking this tool
     - agent_question: The question that the agent will ask the user.
     """
+    print(f"The get human input tool is called with name:{agent_name}\n and \n question{agent_question}\n\n")
+    configuration.active_diagram.value = (
+        f"{configuration.diagram_path}/{configuration.diagrams['get_human_input'][agent_name]}"
+    )
     configuration.chat_interface.send(
         value=pn.pane.Markdown(
             object=agent_question,
-            styles=configuration.chat_styles
+            styles=configuration.chat_styles,
+            stylesheets=[chat_stylesheet]
         ),
         user=agent_name,
         respond=False,
-        avatar=f"{configuration.avatar_images[agent_name]}",
+        avatar=pn.pane.Image(f"{configuration.avatar_images[agent_name]}", styles={"margin-top": "1rem", "padding": "1.5rem"}),
     )
+    configuration.chat_interface.widgets[0].disabled = False
     configuration.spinner.value = False
     configuration.spinner.visible = False
 
@@ -91,39 +100,41 @@ def get_human_input(agent_name: str, agent_question: str) -> str:
 
     configuration.spinner.value = True
     configuration.spinner.visible = True
+
+    configuration.chat_interface.widgets[0].disabled = True
     return human_comments
 
 
-class SwaggerSplitter(BaseTool):
+@tool("update_env_variables")
+def update_env_variables(*, API_ENDPOINT: str = None, API_BEARER_TOKEN: str = None):
     """
-    This tool splits will swagger file into multiple files."
+    This function will update the API Endpoint or API Bearer Token in the environment variables. It has 2 parameter it accepts:
+    - API_ENDPOINT: The API Endpoint (Optional) to be updated in case of faulty API Endpoint in the .env file
+    - API_BEARER_TOKEN: The API Endpoint (Optional) to be updated in case of faulty API Endpoint in the .env file
     """
+    print("values received", API_BEARER_TOKEN, "\n", API_ENDPOINT)
+    env_file = find_dotenv()
+    load_dotenv(env_file)
 
-    name: str = "swagger_splitter"
-    description: str = (
-        """This tool splits will swagger file into multiple files, and generates a metadata file."""
-        """This tool accepts no input parameters, so just pass '{"input": {}}' as input."""
-    )
+    if API_ENDPOINT:
+        # Update API endpoint in the .env file
+        api_endpoint = (
+            literal_eval(get_key(env_file, "API_ENDPOINT"))
+            if get_key(env_file, "API_ENDPOINT")
+            else {}
+        )
+        api_endpoint[configuration.selected_swagger_file] = API_ENDPOINT
+        set_key(env_file, "API_ENDPOINT", api_endpoint, quote_mode="never")
 
-    def _run(self) -> str:
-        if exists(configuration.generated_folder_path):
-            return dedent(
-                """
-                    Swagger splitter has already run. If a user wants to force a rerun,
-                    they need to delete the 'generated' folder. If there exists no metadata summaries,
-                    or you fail to read the directory, you must run the Swagger API Description Summarizer.
-                    Exiting.
-                """
-            )
-        for filename in listdir(configuration.swagger_files_directory):
-            if filename.endswith(".json"):
-                swagger_parser(
-                    filename,
-                    configuration.swagger_files_directory,
-                    configuration.generated_folder_path,
-                )
-
-        return f"""Swagger splitter has run successfully. The generated swagger files are in the directory {configuration.generated_folder_path}."""
+    if API_BEARER_TOKEN:
+        # Update API bearer token in the .env file
+        api_bearer_token = (
+            literal_eval(get_key(env_file, "API_BEARER_TOKEN"))
+            if get_key(env_file, "API_BEARER_TOKEN")
+            else {}
+        )
+        api_bearer_token[configuration.selected_swagger_file] = API_BEARER_TOKEN
+        set_key(env_file, "API_BEARER_TOKEN", api_bearer_token, quote_mode="never")
 
 
 class SummaryGenerator(BaseTool):
@@ -153,7 +164,14 @@ class SummaryGenerator(BaseTool):
 
         human_template = """
         Generate a summary of the below provided metadata that is descriptive and concise. 
-        Make sure it captures all details of the capabilities of the API, but is as short as possible.
+        Based on the provided API metadata, generate a detailed overview of the API's capabilities. Structure your response clearly to match the following categories:
+
+        Endpoints: List all available endpoints with a brief description of each.
+        Methods: Identify the HTTP methods (e.g., GET, POST) supported by each endpoint.
+        Parameters: Detail required and optional parameters, including data types and descriptions for each endpoint.
+        Authentication: Describe the authentication methods (e.g., API key, OAuth) needed to access the API.
+        Use Cases: Suggest specific use cases for the API based on its capabilities.
+        Ensure that your response is structured in a way that is straightforward for developers to understand and use for integration tasks and can be matched with task in plain english.
 
         ```
         {json_content}
@@ -221,7 +239,11 @@ class APICaller(BaseTool):
     def __init__(self):
         super().__init__()
 
-    def _run(self, path: str, method: str, parameters: Dict[str, str] = {}, **kwargs):
+    def _run(self, path: str, method: str, parameters: Dict[str, str] = {}, *args, **kwargs):
+        configuration.active_diagram.value = (
+            f"{configuration.diagram_path}/{configuration.diagrams['api_caller']}"
+        )
+        print("The parameters received are:", path, "\n", method, "\n", parameters, "\n", args, "\n", kwargs)
         load_dotenv(find_dotenv(), override=True)
         base_url = kwargs.get("API_ENDPOINT") if "API_ENDPOINT" in kwargs else \
         loads(environ.get("API_ENDPOINT").replace("'", '"'))[configuration.selected_swagger_file]
@@ -243,8 +265,11 @@ class APICaller(BaseTool):
         configuration.chat_interface.send(
             value=pn.pane.Markdown(
                 object=call_details,
-                styles=configuration.chat_styles
-            ), user="API Caller Tool", respond=False, avatar="🛠️"
+                styles=configuration.chat_styles,
+                stylesheets=[chat_stylesheet]
+            ), user="API Caller Tool", 
+            respond=False, 
+            avatar=pn.pane.Image(f"{configuration.diagram_path}/tool.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
         )
 
         if method.upper() == "GET":
@@ -264,6 +289,6 @@ class APICaller(BaseTool):
             return response._content.decode("utf-8")
 
 
-swagger_splitter = SwaggerSplitter()
+# swagger_splitter = SwaggerSplitter()
 summary_generator = SummaryGenerator()
 api_caller = APICaller()

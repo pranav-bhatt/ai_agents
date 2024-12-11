@@ -16,7 +16,9 @@ class Initialize:
         "Human Input Agent": "1_human_inputt.jpg",
         "get_human_input":{ 
             "Human Input Agent": "1_human_inputt.jpg",
-            "API Selector Agent": "get_human_input.jpg" 
+            "API Selector Agent": "get_human_input.jpg",
+            "Input Matcher": "2_task_matcherr.jpg",
+            "Decision Validator Agent": "4_decision_validatorr.jpg",
         }
         ,
         "Input Matcher": "2_task_matcherr.jpg",

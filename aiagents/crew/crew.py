@@ -284,6 +284,27 @@ def create_session_without_start_button():
         ), user="System", respond=False,
         avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
     )
+    configuration.chat_interface.send(
+        pn.pane.Markdown(
+            """
+                #### Accessing and Using the CML Workbench API Specification:
+                - Sign in to Cloudera AI.
+                - Access the API specification for CML Workbench at `https://<domain name of Cloudera AI instance>/api/v2/swagger.json`
+                - Navigate to **User Settings** > **API Keys** and select **Create API Key**.
+                - Copy the **API key** (bearer token) and the **domain endpoint** (API endpoint) from the browser’s address bar (e.g., `https://ml-xxxx123456.com`).
+
+                Example Tasks that the Agent Can Perform With the given API Specification:
+                - Create a project
+                - List all projects
+                - List all runtimes
+            """,
+            styles=configuration.chat_styles,
+            stylesheets=[chat_stylesheet]
+        ),
+        user="System",
+        respond=False,
+        avatar=pn.pane.Image(f"{configuration.diagram_path}/system.svg", styles={"margin-top": "1rem", "padding": "1.5rem"})
+    )
     # Show the loading spinner as the Crew loads
     configuration.spinner.value = True
     configuration.spinner.visible = True

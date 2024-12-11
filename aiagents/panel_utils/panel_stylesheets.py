@@ -133,6 +133,11 @@ card_stylesheet = """
         margin-right: 3rem;
         margin-bottom: 0.25rem;
         width: calc(100vw - 400px - 10.5rem);
+        resize: none;
+        height: fit-content;
+        max-height: 5rem;
+        position: absolute;
+        bottom: -1.5rem;
     }
 """
 
